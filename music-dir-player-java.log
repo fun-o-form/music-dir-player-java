@@ -1,0 +1,14 @@
+Apr 07, 2025 11:44:07 PM funoform.mdp.Main main
+INFO: Starting Player
+Apr 07, 2025 11:44:07 PM funoform.mdp.ConfigManager <init>
+FINE: 0 keys defined in config at startup:
+Apr 07, 2025 11:44:07 PM funoform.mdp.ConfigManager <init>
+FINE:    startingDir=/home/jonathan/Music
+Apr 07, 2025 11:44:07 PM funoform.mdp.ConfigManager <init>
+FINE:    isRandom=false
+Apr 07, 2025 11:44:07 PM funoform.mdp.ConfigManager <init>
+FINE:    isRecursive=false
+Apr 07, 2025 11:44:07 PM funoform.mdp.ConfigManager <init>
+FINE:    isRepeat=true
+Apr 07, 2025 11:44:07 PM funoform.mdp.ConfigManager <init>
+FINE:    isAutoStart=true

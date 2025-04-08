@@ -3,6 +3,7 @@ package funoform.mdp;
 import java.util.Scanner;
 
 import funoform.mdp.Controller.SettingsListener;
+import funoform.mdp.types.SettingsChanged;
 
 public class Cli {
 	private Controller mCtrl;
@@ -96,6 +97,7 @@ public class Cli {
 			System.out.println("n - Next");
 			System.out.println("x - Exit");
 			System.out.println("r - Refresh CLI");
+			System.out.println("d - Specify Directory to Play");
 			System.out.print("cmd>");
 		} else {
 			// Put the cursor back where it was before we started. If the user was typing in

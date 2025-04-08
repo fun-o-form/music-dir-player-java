@@ -1,5 +1,10 @@
-package funoform.mdp;
+package funoform.mdp.types;
 
+/**
+ * Send by the MusicPlayer to the Controller to provide updates on the song
+ * playback progress, such as how far into the song are we and when the playback
+ * is complete.
+ */
 public class PlaybackStatus {
 	public boolean isPlaybackComplete;
 	public PlaybackPercentage pbPercentage;

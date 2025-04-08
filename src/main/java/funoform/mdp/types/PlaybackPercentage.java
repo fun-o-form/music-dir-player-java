@@ -1,5 +1,9 @@
-package funoform.mdp;
+package funoform.mdp.types;
 
+/**
+ * Represents the progress of a song playback showing the current time into the
+ * song, the total time, and the percentage complete.
+ */
 public class PlaybackPercentage {
 	private long mCurTime = 0;
 	private long mMaxTime = 0;
@@ -10,19 +14,24 @@ public class PlaybackPercentage {
 		mMaxTime = maxTime;
 		// don't sweat the potential overflow. We are talking about songs here with
 		// maybe 10 minute durations.
-		if(0<maxTime) {
+		if (0 < maxTime) {
 			mPercentage = (int) (curTime * 100 / maxTime);
 		}
 	}
 
-	public long getCurTime() {
+	public long getCurTimeSecs() {
 		return mCurTime;
 	}
 
-	public long getMaxTime() {
+	public long getMaxTimeSecs() {
 		return mMaxTime;
 	}
 
+	/**
+	 * Represented as 0-100, whole numbers only, no decimal points.
+	 * 
+	 * @return
+	 */
 	public int getPercentage() {
 		return mPercentage;
 	}

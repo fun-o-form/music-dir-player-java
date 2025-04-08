@@ -8,12 +8,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.SourceDataLine;
 
+import funoform.mdp.types.PlaybackPercentage;
+import funoform.mdp.types.PlaybackStatus;
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Header;
 import javazoom.jl.decoder.JavaLayerException;
@@ -21,6 +25,7 @@ import javazoom.jl.player.Player;
 
 public class MusicPlayer {
 
+	private static final Logger sLogger = Logger.getLogger(MusicPlayer.class.getName());
 	private IPlaybackStatusListener mPbL;
 	private Timer mPlaybackMonitor = new Timer("PlaybackMonitor", true);
 	private Player mNowPlaying = null;
@@ -29,12 +34,6 @@ public class MusicPlayer {
 	private int mCurSongLengthSecs = 0;
 
 	public MusicPlayer() {
-//		List<AudioFormat> supportedFormats = getSupportedAudioFormats();
-//		System.out.println("Supported audio formats: ");
-//		for (AudioFormat fmt : supportedFormats) {
-//			System.out.println("   " + fmt);
-//		}
-
 		// monitor the song playback by running this task every second
 		mPlaybackMonitor.schedule(new TimerTask() {
 			@Override
@@ -88,7 +87,7 @@ public class MusicPlayer {
 						}
 						mNowPlaying.play();
 					} catch (JavaLayerException | IOException e) {
-						System.out.println("Failed to play music file due to exception: " + e.getMessage());
+						sLogger.log(Level.WARNING, "Failed to play music file due to exception: " + e.getMessage());
 						e.printStackTrace();
 					}
 				}

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.freedesktop.dbus.DBusPath;
-import org.freedesktop.dbus.TypeRef;
 import org.freedesktop.dbus.connections.impl.DBusConnection;
 import org.freedesktop.dbus.connections.impl.DBusConnectionBuilder;
 import org.freedesktop.dbus.exceptions.DBusException;
@@ -33,6 +32,11 @@ public class DBusInterface implements MediaPlayer2, Player {
 	private DBusConnection mDbusConn;
 
 	public DBusInterface(Controller ctrl) throws DBusException {
+		// TODO: anything needed to mute on receiving a phone call? Seems like Firefox
+		// mutes automatically and is unlikely to have read the modem/sim/network
+		// connection info over D-Bus (https://developer.puri.sm/Librem5/APIs.html)
+		// TODO: send D-Bus signal to raise keyboard upon entering CLI
+
 		mCtrl = ctrl;
 
 		// Get a connection to the session bus so we can request a bus name
@@ -40,10 +44,10 @@ public class DBusInterface implements MediaPlayer2, Player {
 		// REQ: "Each media player must request a unique bus name which begins with
 		// org.mpris.MediaPlayer2"
 		mDbusConn.requestBusName("org.mpris.MediaPlayer2.fofmusicdirplayer");
-		
+
 		// Export this object onto the bus using the path '/'
 		mDbusConn.exportObject(getObjectPath(), this);
-		
+
 		mDbusConn.addSigHandler(PropertiesChanged.class, new AbstractPropertiesChangedHandler() {
 			@Override
 			public void handle(PropertiesChanged _signal) {
@@ -150,7 +154,7 @@ public class DBusInterface implements MediaPlayer2, Player {
 	public PropertySupportedMimeTypesType getSupportedMimeTypes() {
 		List<String> ret = new ArrayList<>();
 		ret.add("audio/mpeg");
-		return (PropertySupportedMimeTypesType)ret;
+		return (PropertySupportedMimeTypesType) ret;
 	}
 
 	@Override

@@ -7,10 +7,21 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import funoform.mdp.MusicPlayer.IPlaybackStatusListener;
+import funoform.mdp.types.PlaybackStatus;
+import funoform.mdp.types.SettingsChanged;
 
+/**
+ * Controls the playback of music (through ownership of the
+ * {@link MusicPlayer}), advancing tracks, reporting out playback status, and in
+ * general being the single point something like the CLI or GUI needs to
+ * effectively control the app.
+ */
 public class Controller {
+	private static final Logger sLogger = Logger.getLogger(Main.class.getName());
 	private MusicPlayer mPlayer = new MusicPlayer();
 	private Path mBrowsingDir;
 	private List<Path> mQueuedMusicFiles;
@@ -18,9 +29,9 @@ public class Controller {
 	private int mCurPlayingIndex = -1;
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
 
-	public Controller(String startingDir, boolean isRecursive) throws FileNotFoundException {
+	public Controller(Path startingDir, boolean isRecursive) throws FileNotFoundException {
 		// Make sure the specified directory exists
-		mBrowsingDir = Path.of(startingDir);
+		mBrowsingDir = startingDir;
 		if (!Files.exists(mBrowsingDir)) {
 			throw new FileNotFoundException(
 					"The specified starting directory does not exist or is not accessible: " + startingDir);
@@ -33,7 +44,7 @@ public class Controller {
 			@Override
 			public void playbackStatusChanged(PlaybackStatus status) {
 				if (status.isPlaybackComplete) {
-					System.out.println("Status = " + status);
+					sLogger.log(Level.FINE, "Playback status changed: " + status);
 					nextTrack();
 				}
 
@@ -49,7 +60,7 @@ public class Controller {
 			List<Path> subDirs = FileUtils.getSubDirectories(startingDir);
 			ret = subDirs.stream().map(Path::toString).toList();
 		} catch (IOException e) {
-			System.out.println("Exception while getting available subdirectories. " + e.getMessage());
+			sLogger.log(Level.WARNING, "Exception while getting available subdirectories. " + e.getMessage());
 			ret = new ArrayList<>();
 		}
 		return ret;
@@ -104,17 +115,17 @@ public class Controller {
 			playSong(nextIndex);
 		}
 	}
-	
+
 	public void setRandom(boolean isRandom) {
 		mSettings.isRandom = isRandom;
 		notifySettingsListeners();
 	}
-	
+
 	public void setRepat(boolean isRepeat) {
 		mSettings.isRepeat = isRepeat;
 		notifySettingsListeners();
 	}
-	
+
 	public void setRecursive(boolean isRecursive) {
 		mSettings.isRecursive = isRecursive;
 		notifySettingsListeners();

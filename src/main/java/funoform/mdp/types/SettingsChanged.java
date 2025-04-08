@@ -1,5 +1,9 @@
-package funoform.mdp;
+package funoform.mdp.types;
 
+/**
+ * Represents the settings in use by the Controller, and also the status of
+ * directory / song being played back by the Controller.
+ */
 public class SettingsChanged {
 	public boolean isRecursive;
 	public boolean isRepeat;
@@ -9,6 +13,9 @@ public class SettingsChanged {
 	public String songPlaying;
 	public PlaybackPercentage pbPercentage;
 
+	/**
+	 * Performs a deep copy of a SettingsChanged object.
+	 */
 	public SettingsChanged clone() {
 		SettingsChanged c = new SettingsChanged();
 		c.isRecursive = this.isRecursive;
@@ -38,7 +45,12 @@ public class SettingsChanged {
 		sb.append("]");
 		return sb.toString();
 	}
-	
+
+	/**
+	 * Gets a empty instance of a SettingsChanged object.
+	 * 
+	 * @return
+	 */
 	public static SettingsChanged blank() {
 		SettingsChanged blank = new SettingsChanged();
 		blank.songPlaying = "None";

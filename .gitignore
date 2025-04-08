@@ -1,1 +1,6 @@
 target/
+
+# Eclipse IDE files
+.classpath
+.project
+org.eclipse.*
