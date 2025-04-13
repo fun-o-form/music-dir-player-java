@@ -19,7 +19,6 @@ public class Main {
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws InterruptedException, IOException, DBusException {
-
 		// First things first, load our logging properties file. This sets the log
 		// values to play nice with the CLI. However, if someone went through the pain
 		// of manually specifying "-Djava.util.logging.config.file" on the command line

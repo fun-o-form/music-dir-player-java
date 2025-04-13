@@ -21,3 +21,7 @@ As a Java application this will run on a variety of platforms not just the Libre
 
 ## Related Projects
 1. Music Dir Player (Rust) - This Java application was also written as a RUST application. The expectation is the Rust application will provide the same capability while consuming fewer system resources. However I am learning Rust as I go and progress has been slow. I developed this Java application to utilize while I keep developing the Rust version. As a benefit, this allows conducting an apples-to-apples comparison of the two apps' overall performance.
+
+## Installing on Librem5
+1. sudo apt install openjdk-17-jre (uses ~200Mb of disk space)
+2. 

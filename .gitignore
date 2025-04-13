@@ -4,4 +4,4 @@ target/
 .classpath
 .project
 org.eclipse.*
-*.log
+*.log*

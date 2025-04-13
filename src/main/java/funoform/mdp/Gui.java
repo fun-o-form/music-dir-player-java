@@ -1,6 +1,7 @@
 package funoform.mdp;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -30,6 +31,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
@@ -41,7 +43,7 @@ import funoform.mdp.types.SettingsChanged;
 /**
  * Provides a graphical user interface for controlling the music.
  */
-public class Gui extends JFrame {
+public class Gui extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Logger sLogger = Logger.getLogger(Gui.class.getName());
 	private Controller mCtrl;
@@ -72,6 +74,7 @@ public class Gui extends JFrame {
 			public void run() {
 				init();
 				addActionListeners();
+				createWindowIfNeededAndSetVisible();
 			}
 		});
 	}
@@ -104,10 +107,9 @@ public class Gui extends JFrame {
 		this.add(pnlCenter, BorderLayout.CENTER);
 		this.add(pnlBottom, BorderLayout.SOUTH);
 		this.setPreferredSize(new Dimension(300, 400));
-		this.pack();
-		this.setVisible(true);
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		this.setTitle("Fun-O-Form Music Dir Player");
+
+		this.setBackground(Color.CYAN);
+		this.setBackground(Color.magenta);
 
 		mBtnPlayPause.setToolTipText("Play/Pause");
 		mBtnNext.setToolTipText("Next Track");
@@ -123,7 +125,6 @@ public class Gui extends JFrame {
 		mListSongs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		try {
-			this.setIconImage(getImage("icons8-play-64.png"));
 			mIconPlay = getIcon("icons8-play-64.png", BUTTON_SIZE);
 			mIconPause = getIcon("icons8-pause-64.png", BUTTON_SIZE);
 			mBtnPlayPause.setIcon(mIconPlay);
@@ -302,6 +303,59 @@ public class Gui extends JFrame {
 	}
 
 	/**
+	 * Hack that creates the correct type of top level window for the current
+	 * platform and makes that window visible.
+	 */
+	private void createWindowIfNeededAndSetVisible() {
+		// On a Librem Evergreen running Byzantium, this returns "6.6.0-1-librem5"
+		String osVer = System.getProperties().getProperty("os.version");
+		boolean isLibrem = osVer.toLowerCase().contains("librem");
+
+		// PureOS runs applications with no menu bar. On Java, this results in some
+		// wonky behavior. If you run a JFrame, it will get set to its preferred size,
+		// then maximized, yet the content pane will remain the smaller preferred size.
+		// The window goes full screen but the content doesn't expand to fill it. Super
+		// annoying. If you run a JWindow instead of a JFrame, the JWindow properly
+		// expands the content pane to fill the maximized window. But using just a
+		// JWindow is normally a bad idea as JWindows don't have title bars or window
+		// buttons (e.g. close, min, max).
+		//
+		// Our hack, and I do mean hack, is to detect if we are running on PureOS, and
+		// if we are, then just run with a JWindow. If we aren't, then its safe to use a
+		// JFrame.
+		//
+		// I don't want to make this decision based on app config or cmd line args. I
+		// dumped all the java properties as shown below and found a value that is
+		// unique when on the Librem5 at least, though its probably not set when running
+		// PureOS on some other device.
+		//
+		// System.getProperties().list(System.out);
+		//
+		if (isLibrem) {
+			// Just run with the title-bar-less JWindow. It works correctly on the Librem
+			// where the title bar and window buttons wouldn't be shown anyways
+			JWindow win = new JWindow();
+			win.getContentPane().add(this);
+			win.pack();
+			win.setVisible(true);
+		} else {
+			// We are not on the Librem. Give the user the traditional JFrame experience
+			// which includes the title bar and min/max/close buttons.
+			JFrame frm = new JFrame();
+			frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frm.setTitle("Fun-O-Form Music Dir Player");
+			try {
+				frm.setIconImage(getImage("icons8-play-64.png"));
+			} catch (IOException e) {
+				// Oh well
+			}
+			frm.getContentPane().add(this);
+			frm.pack();
+			frm.setVisible(true);
+		}
+	}
+
+	/**
 	 * Controls how Paths are displayed in a list, namely with a short name rather
 	 * than showing the full absolute path.
 	 */
@@ -319,10 +373,25 @@ public class Gui extends JFrame {
 		}
 	}
 
+	/**
+	 * Gets an image out of the jar's resources.
+	 * 
+	 * @param filename
+	 * @return
+	 * @throws IOException
+	 */
 	private static Image getImage(String filename) throws IOException {
 		return ImageIO.read(ClassLoader.getSystemResource("icons/" + filename));
 	}
 
+	/**
+	 * Gets an icon out of the jar's resources.
+	 * 
+	 * @param filename
+	 * @param size
+	 * @return
+	 * @throws IOException
+	 */
 	private static Icon getIcon(String filename, int size) throws IOException {
 		Image image = getImage(filename).getScaledInstance(size, size, Image.SCALE_DEFAULT);
 		Icon icon = new ImageIcon(image);
