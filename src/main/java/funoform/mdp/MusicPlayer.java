@@ -97,6 +97,10 @@ public class MusicPlayer {
 		return true;
 	}
 
+	public void togglePauseResume() {
+		// TODO: use AdvancedPlayer and support pause/resume
+	}
+	
 	public void init(IPlaybackStatusListener l) {
 		synchronized (mPlaybackMonitor) {
 			mPbL = l;

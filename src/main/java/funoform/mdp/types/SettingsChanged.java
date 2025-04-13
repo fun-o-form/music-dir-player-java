@@ -1,5 +1,7 @@
 package funoform.mdp.types;
 
+import java.nio.file.Path;
+
 /**
  * Represents the settings in use by the Controller, and also the status of
  * directory / song being played back by the Controller.
@@ -8,9 +10,8 @@ public class SettingsChanged {
 	public boolean isRecursive;
 	public boolean isRepeat;
 	public boolean isRandom;
-	public String playingDir;
-	public String browsingDir;
-	public String songPlaying;
+	public Path playingDir;
+	public Path songPlaying;
 	public PlaybackPercentage pbPercentage;
 
 	/**
@@ -22,7 +23,6 @@ public class SettingsChanged {
 		c.isRepeat = this.isRepeat;
 		c.isRandom = this.isRandom;
 		c.playingDir = this.playingDir;
-		c.browsingDir = this.browsingDir;
 		c.songPlaying = this.songPlaying;
 		c.pbPercentage = this.pbPercentage;
 		return c;
@@ -39,7 +39,7 @@ public class SettingsChanged {
 		sb.append(", dir=");
 		sb.append(playingDir);
 		sb.append(", song=");
-		sb.append(songPlaying);
+		sb.append(songPlaying.getFileName().toString());
 		sb.append(", playback=");
 		sb.append(pbPercentage);
 		sb.append("]");
@@ -53,8 +53,8 @@ public class SettingsChanged {
 	 */
 	public static SettingsChanged blank() {
 		SettingsChanged blank = new SettingsChanged();
-		blank.songPlaying = "None";
-		blank.playingDir = "None";
+		blank.songPlaying = null;
+		blank.playingDir = null;
 		blank.pbPercentage = new PlaybackPercentage(0, 0);
 		return blank;
 	}

@@ -8,10 +8,10 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.freedesktop.dbus.exceptions.DBusException;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
-import funoform.mdp.Controller.SettingsListener;
-import funoform.mdp.types.SettingsChanged;
+import org.freedesktop.dbus.exceptions.DBusException;
 
 public class Main {
 
@@ -30,33 +30,38 @@ public class Main {
 				LogManager.getLogManager().readConfiguration(stream);
 			}
 		}
-
 		sLogger.log(Level.INFO, "Starting Player");
+
+		// Set the Swing look and feel. This only impacts the Gui, but must be done
+		// before the Gui is constructed otherwise it will end up with half the default
+		// and half the GTK theme. Note, we can't make this call in the Gui itself
+		// because by then we can't theme fully applied. Too bad.
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {
+			// Oh well, run with with whatever the default L&F is on this system. This is
+			// probably a windows platform thus doesn't support GTK
+			e.printStackTrace();
+		}
 
 		ConfigManager cfg = new ConfigManager();
 		Path startingDir = Paths.get(cfg.getStartingDir());
 
 		Controller ctrl = new Controller(startingDir, cfg.getIsRecursive());
 		ctrl.setRandom(cfg.getIsRandom());
-		ctrl.setRepat(cfg.getIsRepeat());
-		ctrl.registerSettingsListener(new SettingsListener() {
-			@Override
-			public void settingsChanged(SettingsChanged newSettings) {
-//				System.out.println("Settings = " + newSettings);
-			}
-		});
-
+		ctrl.setRepeat(cfg.getIsRepeat());
 		if (cfg.getIsAutoStart()) {
-			ctrl.playBrowsingDir();
+			ctrl.playDir(startingDir);
 		}
 
 		Cli cli = new Cli(ctrl);
+		Gui gui = new Gui(ctrl);
 
-		//Gui gui = new Gui();
-
-		DBusInterface dbi = new DBusInterface(ctrl);
+//		DBusInterface dbi = new DBusInterface(ctrl);
 
 		// TODO: before exiting, get current settings from ctrl and save them
 		// cfg.saveSettings(...);
+
 	}
 }

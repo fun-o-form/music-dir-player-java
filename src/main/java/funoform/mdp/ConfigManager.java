@@ -1,5 +1,6 @@
 package funoform.mdp;
 
+import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
@@ -52,7 +53,8 @@ public class ConfigManager {
 
 	public String getStartingDir() {
 		// TODO: Remove Music from path
-		return mPrefs.get(STARTING_DIR, System.getProperty("user.home") + "/Music");
+		Path defaultPath = Path.of(System.getProperty("user.home"), "Music");
+		return mPrefs.get(STARTING_DIR, defaultPath.toString());
 	}
 
 	public boolean getIsAutoStart() {
@@ -72,7 +74,7 @@ public class ConfigManager {
 	}
 
 	public void savePreferences(SettingsChanged newSettings) {
-		mPrefs.put(STARTING_DIR, newSettings.playingDir);
+		mPrefs.put(STARTING_DIR, newSettings.playingDir.toString());
 		mPrefs.putBoolean(RANDOM, newSettings.isRandom);
 		mPrefs.putBoolean(RECURSIVE, newSettings.isRecursive);
 		mPrefs.putBoolean(REPEAT, newSettings.isRepeat);

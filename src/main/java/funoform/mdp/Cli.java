@@ -81,13 +81,17 @@ public class Cli {
 
 		// row 2
 		System.out.print(ANSI_ROW2_LEFT + ANSI_ERASE_LINE);
-		System.out.print(ANSI_BLUE_BACKGROUND + ANSI_WHITE + lastNChars(newSettings.playingDir, 50));
+		if (null != newSettings.playingDir) {
+			System.out.print(ANSI_BLUE_BACKGROUND + ANSI_WHITE + lastNChars(newSettings.playingDir.toString(), 50));
+		}
 		System.out.print(ANSI_RESET);
 
 		// row 3
 		System.out.print(ANSI_ROW3_LEFT + ANSI_ERASE_LINE);
 		System.out.print(ANSI_GREEN + String.format("[%3s%%] ", newSettings.pbPercentage.getPercentage()));
-		System.out.print(ANSI_MAGENTA + lastNChars(newSettings.songPlaying, 44));
+		if (null != newSettings.songPlaying) {
+			System.out.print(ANSI_MAGENTA + lastNChars(newSettings.songPlaying.getFileName().toString(), 44));
+		}
 		System.out.print(ANSI_RESET);
 		System.out.println("");
 
@@ -105,9 +109,9 @@ public class Cli {
 			System.out.print(ANSI_RESTORE_CUR_POS);
 		}
 	}
-	
+
 	private static String lastNChars(String str, int numChars) {
-		if(str.length() > numChars) {
+		if (str.length() > numChars) {
 			int start = str.length() - numChars;
 			return str.substring(start);
 		}
@@ -134,11 +138,11 @@ public class Cli {
 				case "r":
 					// Refresh the display. This is automatic
 					break;
-				default: 
+				default:
 					// User entered unknown command
 					break;
 				}
-				
+
 				// Clear out out whatever the user typed in, albeit a valid or invalid command
 				printStatus(SettingsChanged.blank(), true);
 
