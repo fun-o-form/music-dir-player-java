@@ -14,6 +14,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.freedesktop.dbus.exceptions.DBusException;
 
+import funoform.mdp.gui.Gui;
+
 public class Main {
 
 	private static final Logger sLogger = Logger.getLogger(Main.class.getName());

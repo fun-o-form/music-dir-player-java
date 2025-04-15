@@ -1,4 +1,4 @@
-package funoform.mdp;
+package funoform.mdp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -41,8 +41,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.FontUIResource;
 
+import funoform.mdp.Controller;
 import funoform.mdp.Controller.SettingsListener;
-import funoform.mdp.DirectoryPicker.PathSelectionListener;
+import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
 import funoform.mdp.types.SettingsChanged;
 
 // TODO: touch screen scroll-able song list and dir picker, or at least make the scroll bar bigger

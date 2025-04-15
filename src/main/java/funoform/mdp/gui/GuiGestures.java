@@ -1,4 +1,4 @@
-package funoform.mdp;
+package funoform.mdp.gui;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.logging.Level;
@@ -13,6 +14,8 @@ import java.util.logging.Logger;
 
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
+
+import funoform.mdp.Controller;
 
 /**
  * Recognizes mouse gestures, such as swipes, and issues the corresponding
@@ -35,7 +38,7 @@ import javax.swing.SwingUtilities;
  * is responsible for sending any mouse actions it chooses not to handle to the
  * components under the glass pane.
  */
-public class GuiGestures implements MouseListener, MouseWheelListener {
+public class GuiGestures implements MouseListener, MouseWheelListener, MouseMotionListener {
 
 	private static final Logger sLogger = Logger.getLogger(GuiGestures.class.getName());
 	private Controller mCtrl;
@@ -60,34 +63,22 @@ public class GuiGestures implements MouseListener, MouseWheelListener {
 		mCtrl = ctrl;
 		mWin = window;
 		mWin.getGlassPane().setVisible(true);
-//		mWin.getGlassPane().addMouseListener(this);
+
+		// All we really want is the mouse listener so we can look for click and drag
+		// gestures. Unfortunately, once you register a mouseListener, your window will
+		// stop responding to mouse wheel and mouse motion events. So you MUST register
+		// as a listener for all 3 and forward the events you don't want. Super
+		// annoying.
+		mWin.getGlassPane().addMouseListener(this);
+		mWin.getGlassPane().addMouseWheelListener(this);
+		mWin.getGlassPane().addMouseMotionListener(this);
 	}
 
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent evt) {
-		// No gestures can occur on this mouse event. Forward everything just so the
-		// glass pane doesn't prevent controls from getting this event on their own
-		redispatchMouseEvent(evt);
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent evt) {
-		// No gestures can occur on this mouse event. Forward everything just so the
-		// glass pane doesn't prevent controls from getting this event on their own
-		redispatchMouseEvent(evt);
-	}
-
-	@Override
-	public void mouseExited(MouseEvent evt) {
-		// No gestures can occur on this mouse event. Forward everything just so the
-		// glass pane doesn't prevent controls from getting this event on their own
-		redispatchMouseEvent(evt);
-	}
-
+	/**
+	 * Mouse clicks are those where the mouse is both pressed and released
+	 */
 	@Override
 	public void mouseClicked(MouseEvent evt) {
-		// mouse clicks are those where the mouse is both pressed and released
-
 		// If you triple click (or more) the mouse in rapid succession, the music will
 		// be stopped. Note that you must stop clicking the mouse briefly to reset the
 		// counter
@@ -100,20 +91,25 @@ public class GuiGestures implements MouseListener, MouseWheelListener {
 		}
 	}
 
+	/**
+	 * Mouse presses are those where the button is pressed down but not necessarily
+	 * released
+	 */
 	@Override
 	public void mousePressed(MouseEvent evt) {
-		// mouse presses are those where the button is pressed down but not necessarily
-		// released
 		redispatchMouseEvent(evt);
 		if (MouseEvent.BUTTON1 == evt.getButton()) {
+			// perhaps the beginning of a gesture
 			mPressPoint = evt.getPoint();
 		}
 	}
 
+	/**
+	 * Mouse presses are those where the button is pressed down but not necessarily
+	 * released
+	 */
 	@Override
 	public void mouseReleased(MouseEvent evt) {
-		// mouse presses are those where the button is pressed down but not necessarily
-		// released
 		if (MouseEvent.BUTTON1 == evt.getButton()) {
 			Point releasePoint = evt.getPoint();
 			if (handlePotentialDrag(mPressPoint, releasePoint)) {
@@ -223,5 +219,51 @@ public class GuiGestures implements MouseListener, MouseWheelListener {
 			compAtLocation.dispatchEvent(new MouseEvent(compAtLocation, evt.getID(), evt.getWhen(), evt.getModifiers(),
 					containerPoint.x, containerPoint.y, evt.getClickCount(), evt.isPopupTrigger()));
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	private void redispatchMouseEvent(MouseWheelEvent evt) {
+		Point glassPanePoint = evt.getPoint();
+		Container c = mWin.getContentPane();
+		Component compAtLocation = SwingUtilities.getDeepestComponentAt(c, glassPanePoint.x, glassPanePoint.y);
+		Point containerPoint = SwingUtilities.convertPoint(mWin.getGlassPane(), glassPanePoint, compAtLocation);
+
+		if (null != compAtLocation) {
+			compAtLocation.dispatchEvent(new MouseWheelEvent(compAtLocation, evt.getID(), evt.getWhen(),
+					evt.getModifiers(), containerPoint.x, containerPoint.y, evt.getClickCount(), evt.isPopupTrigger(),
+					evt.getScrollType(), evt.getScrollAmount(), evt.getWheelRotation()));
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	// None of the methods below lead to mouse gestures. Yet we have to listen for
+	// these events so we can forward them to the component under the glass pane.
+	// Not listening for these events would cause them to vanish into the void and
+	// you wouldn't be able to scroll your mouse wheel on a scroll pane for example.
+	////////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent evt) {
+		redispatchMouseEvent(evt);
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent evt) {
+		redispatchMouseEvent(evt);
+	}
+
+	@Override
+	public void mouseExited(MouseEvent evt) {
+		redispatchMouseEvent(evt);
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent evt) {
+		redispatchMouseEvent(evt);
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent evt) {
+		redispatchMouseEvent(evt);
 	}
 }

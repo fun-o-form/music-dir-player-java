@@ -1,4 +1,4 @@
-package funoform.mdp;
+package funoform.mdp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -17,6 +17,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+
+import funoform.mdp.Controller;
 
 /**
  * Provides a nice GUI for selecting the directory of music to play or play
