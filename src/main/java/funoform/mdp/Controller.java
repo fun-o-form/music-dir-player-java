@@ -31,7 +31,7 @@ public class Controller {
 	private int mCurPlayingIndex = -1;
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
 
-	public Controller(Path startingDir, boolean isRecursive) throws FileNotFoundException {
+	public Controller(Path startingDir) throws FileNotFoundException {
 		// Make sure the specified directory exists
 		if (!Files.exists(startingDir)) {
 			throw new FileNotFoundException(
@@ -39,7 +39,6 @@ public class Controller {
 		}
 
 		mSettings.playingDir = startingDir;
-		mSettings.isRecursive = isRecursive;
 
 		// Receive notifications about playback % complete and when the song ends
 		mPlayer.init(new IPlaybackStatusListener() {
@@ -60,12 +59,13 @@ public class Controller {
 		List<Path> ret;
 		try {
 			ret = FileUtils.getSubDirectories(dir);
-			
-			//alphabetize list ignoring case
+
+			// alphabetize list ignoring case
 			Collections.sort(ret, new Comparator<Path>() {
 				@Override
 				public int compare(Path o1, Path o2) {
-					return o1.getFileName().toString().toLowerCase().compareTo(o2.getFileName().toString().toLowerCase());
+					return o1.getFileName().toString().toLowerCase()
+							.compareTo(o2.getFileName().toString().toLowerCase());
 				}
 			});
 		} catch (IOException e) {
@@ -75,12 +75,8 @@ public class Controller {
 		return ret;
 	}
 
-	public List<Path> getAvailableSongs(Path dir) {
-		try {
-			return FileUtils.listMusicFiles(dir, mSettings.isRecursive);
-		} catch (IOException e) {
-			return new ArrayList<Path>();
-		}
+	public List<Path> getQueuedSongs() {
+		return Collections.unmodifiableList(mQueuedMusicFiles);
 	}
 
 	public Path getCurrentDir() {
@@ -91,11 +87,11 @@ public class Controller {
 		mPlayer.togglePauseResume();
 	}
 
-	public void playDir(Path dir) {
-		playDir(dir, null);
+	public void playDir(Path dir, boolean recursive) {
+		playDir(dir, recursive, null);
 	}
 
-	private void playDir(Path dir, Path song) {
+	private void playDir(Path dir, boolean recursive, Path song) {
 		// sanity checks
 		if (!Files.isDirectory(dir)) {
 			sLogger.log(Level.SEVERE, "Asked to play a directory that wasn't a directory: " + dir.toString());
@@ -109,14 +105,16 @@ public class Controller {
 		mSettings.playingDir = dir;
 		// get a list of music files in the directory
 		try {
-			mQueuedMusicFiles = FileUtils.listMusicFiles(dir, mSettings.isRecursive);
+			mQueuedMusicFiles = FileUtils.listMusicFiles(dir, recursive);
 		} catch (IOException e) {
 			sLogger.log(Level.SEVERE, "Exception while trynig to open the directory to play. Directory = " + dir
 					+ ". Exception = " + e.getMessage());
 			return;
 		}
 		if (null == song) {
-			// play whatever song comes up next
+			// Reset the now playing index. This allows us to play the first song in the
+			// directory if random is disabled
+			mCurPlayingIndex = -1;
 			nextTrack();
 		} else {
 			// play the specific song
@@ -159,7 +157,7 @@ public class Controller {
 		} else {
 			// The song isn't in our queue. Play the directory containing the song, then
 			// make sure that specific song plays immediately
-			playDir(song.getParent(), song);
+			playDir(song.getParent(), false, song);
 		}
 	}
 
@@ -210,6 +208,29 @@ public class Controller {
 		}
 	}
 
+	public void priorTrack() {
+		// if playing randomly, there is no going back. Just go forward
+		if (mSettings.isRandom) {
+			nextTrack();
+			return;
+		}
+
+		if (null == mQueuedMusicFiles || mQueuedMusicFiles.isEmpty()) {
+			System.out.println("There are no queued music files to play");
+			stop();
+			return;
+		}
+
+		int nextIndex = mCurPlayingIndex - 1;
+		// you can't go further back than the first song
+		if (nextIndex < 0) {
+			nextIndex = 0;
+		}
+
+		stop();
+		playSong(nextIndex);
+	}
+
 	public void setRandom(boolean isRandom) {
 		mSettings.isRandom = isRandom;
 		notifySettingsListeners();
@@ -217,11 +238,6 @@ public class Controller {
 
 	public void setRepeat(boolean isRepeat) {
 		mSettings.isRepeat = isRepeat;
-		notifySettingsListeners();
-	}
-
-	public void setRecursive(boolean isRecursive) {
-		mSettings.isRecursive = isRecursive;
 		notifySettingsListeners();
 	}
 
@@ -235,11 +251,21 @@ public class Controller {
 		SettingsChanged settingsCopy = mSettings.clone();
 		synchronized (mSettingsListeners) {
 			for (SettingsListener sl : mSettingsListeners) {
-				sl.settingsChanged(settingsCopy);
+				try {
+					sl.settingsChanged(settingsCopy);
+				} catch (Exception e) {
+					// Don't let one jerk ruin it for everyone. Log the error and move on to the
+					// next listener
+					sLogger.log(Level.SEVERE, "Exception while handling new settings: " + e.getMessage());
+				}
 			}
 		}
 	}
 
+	/**
+	 * How the {@link Controller} notifies listeners of playback status and
+	 * settings.
+	 */
 	public interface SettingsListener {
 		public void settingsChanged(SettingsChanged newSettings);
 	}

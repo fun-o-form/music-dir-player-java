@@ -27,7 +27,6 @@ public class ConfigManager {
 
 	private static final String STARTING_DIR = "startingDir";
 	private static final String RANDOM = "isRandom";
-	private static final String RECURSIVE = "isRecursive";
 	private static final String REPEAT = "isRepeat";
 	private static final String AUTO_START = "isAutoStart";
 
@@ -46,7 +45,6 @@ public class ConfigManager {
 		}
 		sLogger.log(Level.FINE, "   " + STARTING_DIR + "=" + getStartingDir());
 		sLogger.log(Level.FINE, "   " + RANDOM + "=" + getIsRandom());
-		sLogger.log(Level.FINE, "   " + RECURSIVE + "=" + getIsRecursive());
 		sLogger.log(Level.FINE, "   " + REPEAT + "=" + getIsRepeat());
 		sLogger.log(Level.FINE, "   " + AUTO_START + "=" + getIsAutoStart());
 	}
@@ -65,10 +63,6 @@ public class ConfigManager {
 		return mPrefs.getBoolean(RANDOM, false);
 	}
 
-	public boolean getIsRecursive() {
-		return mPrefs.getBoolean(RECURSIVE, false);
-	}
-
 	public boolean getIsRepeat() {
 		return mPrefs.getBoolean(REPEAT, true);
 	}
@@ -76,7 +70,6 @@ public class ConfigManager {
 	public void savePreferences(SettingsChanged newSettings) {
 		mPrefs.put(STARTING_DIR, newSettings.playingDir.toString());
 		mPrefs.putBoolean(RANDOM, newSettings.isRandom);
-		mPrefs.putBoolean(RECURSIVE, newSettings.isRecursive);
 		mPrefs.putBoolean(REPEAT, newSettings.isRepeat);
 		// TODO: no way to change auto-start
 	}

@@ -7,7 +7,6 @@ import java.nio.file.Path;
  * directory / song being played back by the Controller.
  */
 public class SettingsChanged {
-	public boolean isRecursive;
 	public boolean isRepeat;
 	public boolean isRandom;
 	public Path playingDir;
@@ -19,7 +18,6 @@ public class SettingsChanged {
 	 */
 	public SettingsChanged clone() {
 		SettingsChanged c = new SettingsChanged();
-		c.isRecursive = this.isRecursive;
 		c.isRepeat = this.isRepeat;
 		c.isRandom = this.isRandom;
 		c.playingDir = this.playingDir;
@@ -30,9 +28,8 @@ public class SettingsChanged {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("[SettingsChanged: recursive=");
-		sb.append(isRecursive);
-		sb.append(", repeat=");
+		StringBuilder sb = new StringBuilder("[SettingsChanged: ");
+		sb.append(" repeat=");
 		sb.append(isRepeat);
 		sb.append(", random=");
 		sb.append(isRandom);

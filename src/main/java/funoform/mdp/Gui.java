@@ -1,9 +1,10 @@
 package funoform.mdp;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -12,6 +13,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -23,22 +25,27 @@ import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.FontUIResource;
 
 import funoform.mdp.Controller.SettingsListener;
+import funoform.mdp.DirectoryPicker.PathSelectionListener;
 import funoform.mdp.types.SettingsChanged;
+
+// TODO: touch screen scroll-able song list and dir picker, or at least make the scroll bar bigger
 
 /**
  * Provides a graphical user interface for controlling the music.
@@ -49,7 +56,7 @@ public class Gui extends JPanel {
 	private Controller mCtrl;
 	private Path mCurBrowsingDir = null;
 	private JButton mBtnDir = new JButton();
-	private JPopupMenu mPopupDir = new JPopupMenu();
+	private DirectoryPicker mDirSelector;
 	private JProgressBar mPbSongDuration = new JProgressBar(0, 0);
 	private JButton mBtnPlayPause = new JButton();
 	private JButton mBtnNext = new JButton();
@@ -57,18 +64,34 @@ public class Gui extends JPanel {
 	private JButton mBtnStop = new JButton();
 	private JToggleButton mTbRandom = new JToggleButton();
 	private JToggleButton mTbRepeat = new JToggleButton();
-	private JToggleButton mTbRecursive = new JToggleButton();
 	private DefaultListModel<Path> mListSongModel = new DefaultListModel<>();
 	private JList<Path> mListSongs = new JList<>(mListSongModel);
 	private AtomicBoolean mDisableSongListEvents = new AtomicBoolean(false);
+	@SuppressWarnings("unused")
+	private GuiGestures mGestures = null;
 
 	private Icon mIconPlay = null;
 	private Icon mIconPause = null;
 	private static final int BUTTON_SIZE = 32;
+	private static final String CARD_MUSIC = "card-music";
+	private static final String CARD_DIR = "card-dir";
 
 	public Gui(Controller ctrl) {
 		mCtrl = ctrl;
 		mCurBrowsingDir = mCtrl.getCurrentDir();
+
+		mDirSelector = new DirectoryPicker(mCtrl, new PathSelectionListener() {
+			@Override
+			public void setPathSelected(Path selPath, boolean isRecursive) {
+				mCurBrowsingDir = selPath;
+				ctrl.playDir(selPath, isRecursive);
+				populateDirSongList();
+
+				CardLayout cl = (CardLayout) Gui.this.getLayout();
+				cl.show(Gui.this, CARD_MUSIC);
+			}
+		});
+
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -81,6 +104,9 @@ public class Gui extends JPanel {
 
 	private void init() {
 		populateDirSongList();
+
+		JComponent cardDirPicker = mDirSelector.getComponent();
+		JPanel cardMusicPlayer = new JPanel();
 
 		JPanel pnlTop = new JPanel(new BorderLayout());
 		// width doesn't matter as it will fill width. Height matters
@@ -100,23 +126,22 @@ public class Gui extends JPanel {
 		pnlBottom.add(mBtnStop);
 		pnlBottom.add(mTbRandom);
 		pnlBottom.add(mTbRepeat);
-		pnlBottom.add(mTbRecursive);
 
-		this.setLayout(new BorderLayout());
-		this.add(pnlTop, BorderLayout.NORTH);
-		this.add(pnlCenter, BorderLayout.CENTER);
-		this.add(pnlBottom, BorderLayout.SOUTH);
+		cardMusicPlayer.setLayout(new BorderLayout());
+		cardMusicPlayer.add(pnlTop, BorderLayout.NORTH);
+		cardMusicPlayer.add(pnlCenter, BorderLayout.CENTER);
+		cardMusicPlayer.add(pnlBottom, BorderLayout.SOUTH);
+
+		this.setLayout(new CardLayout());
+		this.add(cardMusicPlayer, CARD_MUSIC);
+		this.add(cardDirPicker, CARD_DIR);
 		this.setPreferredSize(new Dimension(300, 400));
-
-		this.setBackground(Color.CYAN);
-		this.setBackground(Color.magenta);
 
 		mBtnPlayPause.setToolTipText("Play/Pause");
 		mBtnNext.setToolTipText("Next Track");
 		mBtnBack.setToolTipText("Previous Track");
 		mBtnStop.setToolTipText("Stop");
 		mTbRandom.setToolTipText("Random");
-		mTbRecursive.setToolTipText("Recursive");
 		mTbRepeat.setToolTipText("Repeat All");
 		mPbSongDuration.setToolTipText("Song Playback Progress");
 		mBtnDir.setToolTipText("Current Playing Directory");
@@ -133,8 +158,6 @@ public class Gui extends JPanel {
 			mBtnStop.setIcon(getIcon("icons8-stop-64.png", BUTTON_SIZE));
 			mTbRandom.setSelectedIcon(getIcon("icons8-shuffle-64.png", BUTTON_SIZE));
 			mTbRandom.setIcon(getIcon("icons8-shuffle-64-colorless.png", BUTTON_SIZE));
-			mTbRecursive.setSelectedIcon(getIcon("icons8-eject-64.png", BUTTON_SIZE));
-			mTbRecursive.setIcon(getIcon("icons8-eject-64-colorless.png", BUTTON_SIZE));
 			mTbRepeat.setSelectedIcon(getIcon("icons8-repeat-64.png", BUTTON_SIZE));
 			mTbRepeat.setIcon(getIcon("icons8-repeat-64-colorless.png", BUTTON_SIZE));
 		} catch (IOException e) {
@@ -163,7 +186,7 @@ public class Gui extends JPanel {
 		mBtnBack.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO: implement back in ctrl
+				mCtrl.priorTrack();
 			}
 		});
 
@@ -188,17 +211,11 @@ public class Gui extends JPanel {
 			}
 		});
 
-		mTbRecursive.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				mCtrl.setRecursive(ItemEvent.SELECTED == e.getStateChange());
-			}
-		});
-
 		mBtnDir.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mPopupDir.show(Gui.this, 0, 0);
+				CardLayout cl = (CardLayout) Gui.this.getLayout();
+				cl.show(Gui.this, CARD_DIR);
 			}
 		});
 
@@ -237,18 +254,17 @@ public class Gui extends JPanel {
 						}
 						mDisableSongListEvents.set(false);
 
-						mBtnDir.setText(settings.playingDir.toString());
+						String dirLabel = settings.playingDir.getFileName().toString() + " (" + mListSongModel.getSize()
+								+ ")";
+						mBtnDir.setText(dirLabel);
 						mPbSongDuration.setMinimum(0);
 						mPbSongDuration.setMaximum((int) settings.pbPercentage.getMaxTimeSecs());
 						mPbSongDuration.setValue((int) settings.pbPercentage.getCurTimeSecs());
 						mTbRandom.setSelected(settings.isRandom);
 						mTbRepeat.setSelected(settings.isRepeat);
-						mTbRecursive.setSelected(settings.isRecursive);
 
 						boolean isSongPlaying = (0 < settings.pbPercentage.getMaxTimeSecs());
 						mBtnStop.setEnabled(isSongPlaying);
-						mBtnNext.setEnabled(isSongPlaying);
-						mBtnBack.setEnabled(isSongPlaying);
 						if (isSongPlaying) {
 							mBtnPlayPause.setIcon(mIconPause);
 							String progress = secsToTimeStr(settings.pbPercentage.getCurTimeSecs()) + " / "
@@ -267,37 +283,9 @@ public class Gui extends JPanel {
 	}
 
 	private void populateDirSongList() {
-		List<Path> dirs = mCtrl.getAvailableDirs(mCurBrowsingDir);
-		mPopupDir.removeAll();
+		mDirSelector.setStartingDir(mCurBrowsingDir);
 
-		// always add the ".." directory to go up a directory
-		JMenuItem menuItem = new JMenuItem("..");
-		mPopupDir.add(menuItem);
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Path up = mCurBrowsingDir.getParent();
-				mCurBrowsingDir = up;
-				mCtrl.playDir(up);
-				populateDirSongList();
-			}
-		});
-
-		// now add all the sub-directories
-		for (Path dir : dirs) {
-			menuItem = new JMenuItem(dir.getFileName().toString());
-			mPopupDir.add(menuItem);
-			menuItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					mCurBrowsingDir = dir;
-					mCtrl.playDir(dir);
-					populateDirSongList();
-				}
-			});
-		}
-
-		List<Path> songs = mCtrl.getAvailableSongs(mCurBrowsingDir);
+		List<Path> songs = mCtrl.getQueuedSongs();
 		mListSongModel.clear();
 		mListSongModel.addAll(songs);
 	}
@@ -307,9 +295,6 @@ public class Gui extends JPanel {
 	 * platform and makes that window visible.
 	 */
 	private void createWindowIfNeededAndSetVisible() {
-		// On a Librem Evergreen running Byzantium, this returns "6.6.0-1-librem5"
-		String osVer = System.getProperties().getProperty("os.version");
-		boolean isLibrem = osVer.toLowerCase().contains("librem");
 
 		// PureOS runs applications with no menu bar. On Java, this results in some
 		// wonky behavior. If you run a JFrame, it will get set to its preferred size,
@@ -331,13 +316,14 @@ public class Gui extends JPanel {
 		//
 		// System.getProperties().list(System.out);
 		//
-		if (isLibrem) {
+		if (isLibrem()) {
 			// Just run with the title-bar-less JWindow. It works correctly on the Librem
 			// where the title bar and window buttons wouldn't be shown anyways
 			JWindow win = new JWindow();
 			win.getContentPane().add(this);
 			win.pack();
 			win.setVisible(true);
+			mGestures = new GuiGestures(mCtrl, win);
 		} else {
 			// We are not on the Librem. Give the user the traditional JFrame experience
 			// which includes the title bar and min/max/close buttons.
@@ -352,6 +338,7 @@ public class Gui extends JPanel {
 			frm.getContentPane().add(this);
 			frm.pack();
 			frm.setVisible(true);
+			mGestures = new GuiGestures(mCtrl, frm);
 		}
 	}
 
@@ -392,7 +379,7 @@ public class Gui extends JPanel {
 	 * @return
 	 * @throws IOException
 	 */
-	private static Icon getIcon(String filename, int size) throws IOException {
+	public static Icon getIcon(String filename, int size) throws IOException {
 		Image image = getImage(filename).getScaledInstance(size, size, Image.SCALE_DEFAULT);
 		Icon icon = new ImageIcon(image);
 		return icon;
@@ -416,6 +403,41 @@ public class Gui extends JPanel {
 		} else {
 			return String.format("%02d:%02d", minutes, seconds);
 		}
+	}
+
+	/**
+	 * Sets all fonts globally in swing to be a different size.
+	 * 
+	 * This method is a hack. Normally you should trust the font size set at the
+	 * system level.
+	 * 
+	 * @param multiplier A multiplier of 1.0 is the standard font size. Passing in
+	 *                   1.2 will make all text 20% larger.
+	 */
+	public static void scaleAllFontSize(float multiplier) {
+		UIDefaults defaults = UIManager.getDefaults();
+		@SuppressWarnings("unused")
+		int i = 0;
+		for (Enumeration<Object> e = defaults.keys(); e.hasMoreElements(); i++) {
+			Object key = e.nextElement();
+			Object value = defaults.get(key);
+			if (value instanceof Font) {
+				Font font = (Font) value;
+				int newSize = Math.round(font.getSize() * multiplier);
+				if (value instanceof FontUIResource) {
+					defaults.put(key, new FontUIResource(font.getName(), font.getStyle(), newSize));
+				} else {
+					defaults.put(key, new Font(font.getName(), font.getStyle(), newSize));
+				}
+			}
+		}
+	}
+
+	public static boolean isLibrem() {
+		// On a Librem Evergreen running Byzantium, this returns "6.6.0-1-librem5"
+		String osVer = System.getProperties().getProperty("os.version");
+		boolean isLibrem = osVer.toLowerCase().contains("librem");
+		return isLibrem;
 	}
 
 	// about
