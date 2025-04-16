@@ -12,10 +12,9 @@ import java.awt.event.MouseWheelListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JScrollBar;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
-
-import funoform.mdp.Controller;
 
 /**
  * Recognizes mouse gestures, such as swipes, and issues the corresponding
@@ -38,10 +37,10 @@ import funoform.mdp.Controller;
  * is responsible for sending any mouse actions it chooses not to handle to the
  * components under the glass pane.
  */
-public class GuiGestures implements MouseListener, MouseWheelListener, MouseMotionListener {
+public class GestureDetector implements MouseListener, MouseWheelListener, MouseMotionListener {
 
-	private static final Logger sLogger = Logger.getLogger(GuiGestures.class.getName());
-	private Controller mCtrl;
+	private static final Logger sLogger = Logger.getLogger(GestureDetector.class.getName());
+	private IGestureListener mGestListener;
 	private RootPaneContainer mWin;
 	private Point mPressPoint = null;
 
@@ -49,8 +48,6 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 	 * Creating this object will cause it to immediately start intercepting mouse
 	 * events on the provided window.
 	 * 
-	 * @param ctrl   The controller to send commands to, such as previous track and
-	 *               next track.
 	 * @param window The window, likely a JFrame or JWindow, to which this class
 	 *               will monitor for mouse gestures over. This needs to be your top
 	 *               level window in order to allow gestures anywhere over your app.
@@ -58,9 +55,10 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 	 *               have its glass pane enabled and the GuiGestures class will
 	 *               register to receive all mouse events so that none are sent
 	 *               directly to the components on the window any longer.
+	 * @param l      The thing that gets notified when a gesture has occurred.
 	 */
-	public GuiGestures(Controller ctrl, RootPaneContainer window) {
-		mCtrl = ctrl;
+	public GestureDetector(RootPaneContainer window, IGestureListener l) {
+		mGestListener = l;
 		mWin = window;
 		mWin.getGlassPane().setVisible(true);
 
@@ -79,12 +77,10 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 	 */
 	@Override
 	public void mouseClicked(MouseEvent evt) {
-		// If you triple click (or more) the mouse in rapid succession, the music will
-		// be stopped. Note that you must stop clicking the mouse briefly to reset the
-		// counter
+		// If you triple click (or more) the mouse in rapid succession, take an action.
+		// Note that you must stop clicking the mouse briefly to reset the counter
 		if (evt.getClickCount() > 2) {
-			// TODO: replace with pause/resume once supported
-			mCtrl.stop();
+			mGestListener.gestureDetected(IGestureListener.Gesture.TRIPLE_TAP);
 		} else {
 			// plain old single or double click. Send to underlying component
 			redispatchMouseEvent(evt);
@@ -98,6 +94,7 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 	@Override
 	public void mousePressed(MouseEvent evt) {
 		redispatchMouseEvent(evt);
+
 		if (MouseEvent.BUTTON1 == evt.getButton()) {
 			// perhaps the beginning of a gesture
 			mPressPoint = evt.getPoint();
@@ -177,21 +174,44 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 				// Clean swipe left or right. Figure out which way they went and respond to it
 				if (release.x > press.x) {
 					// swipe right
-					sLogger.log(Level.INFO, "User swipped right. Sending next track cmd");
-					mCtrl.nextTrack();
+					sLogger.log(Level.INFO, "User swipped right");
+					mGestListener.gestureDetected(IGestureListener.Gesture.SWIPE_RIGHT);
 					return true;
 				} else {
 					// swipe left
-					sLogger.log(Level.INFO, "User swipped left. Sending previous track cmd");
-					mCtrl.priorTrack();
+					sLogger.log(Level.INFO, "User swipped left");
+					mGestListener.gestureDetected(IGestureListener.Gesture.SWIPE_LEFT);
 					return true;
 				}
 			}
 		} else if (vGesture) {
-			// We currently don't do anything with vertical gestures. Just ignore them for
-			// now
+			// 20% because we assume portrait mode, so be more generous in the skinnier
+			// dimension
+			int horizontalJitterLimit = winSize.width / 20;
+			if (deltaHorizontal < horizontalJitterLimit) {
+				// Clean swipe up or down. Figure out which way they went and respond to it
+				if (release.y > press.y) {
+					// swipe down
+					sLogger.log(Level.INFO, "User swipped down");
+					mGestListener.gestureDetected(IGestureListener.Gesture.SWIPE_DOWN);
+					return true;
+				} else {
+					// swipe up
+					sLogger.log(Level.INFO, "User swipped up");
+					mGestListener.gestureDetected(IGestureListener.Gesture.SWIPE_UP);
+					return true;
+				}
+			}
 		}
 		return false;
+	}
+
+	public interface IGestureListener {
+		public enum Gesture {
+			SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT, TRIPLE_TAP
+		}
+
+		public void gestureDetected(Gesture g);
 	}
 
 	/**
@@ -235,6 +255,23 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 		}
 	}
 
+	private boolean isMouseOnScrollBar(MouseEvent evt) {
+		Point glassPanePoint = evt.getPoint();
+		Container c = mWin.getContentPane();
+		Component compAtLocation = SwingUtilities.getDeepestComponentAt(c, glassPanePoint.x, glassPanePoint.y);
+		if (compAtLocation instanceof JScrollBar) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent evt) {
+//		if (isMouseOnScrollBar(evt)) {
+		redispatchMouseEvent(evt);
+//		}
+	}
+
 	////////////////////////////////////////////////////////////////////////////
 	// None of the methods below lead to mouse gestures. Yet we have to listen for
 	// these events so we can forward them to the component under the glass pane.
@@ -254,11 +291,6 @@ public class GuiGestures implements MouseListener, MouseWheelListener, MouseMoti
 
 	@Override
 	public void mouseExited(MouseEvent evt) {
-		redispatchMouseEvent(evt);
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent evt) {
 		redispatchMouseEvent(evt);
 	}
 

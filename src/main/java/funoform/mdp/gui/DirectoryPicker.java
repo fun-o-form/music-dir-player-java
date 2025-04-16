@@ -3,12 +3,14 @@ package funoform.mdp.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -51,13 +53,24 @@ public class DirectoryPicker {
 		mListener = l;
 
 		try {
-			mIconPlay = Gui.getIcon("icons8-play-64.png", ICON_SIZE);
-			mIconRecursive = Gui.getIcon("icons8-eject-64.png", ICON_SIZE);
+			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", ICON_SIZE);
+			mIconRecursive = GuiUtils.getIcon("icons8-eject-64.png", ICON_SIZE);
 		} catch (IOException e) {
 			// oh well, run without icons
 		}
 
-		mPanel.setLayout(new GridLayout(0, 1));
+		// Box layout is better than GridLayout in this case for one simple reason. In
+		// the GridLayout, a JSeparator is the full height of all other entries. In the
+		// box layout it is just a thin line not nearly as tall as the other entries.
+		mPanel.setLayout(new BoxLayout(mPanel, BoxLayout.Y_AXIS));
+
+		// make the scroll bar scroll faster
+		mScrollPane.getVerticalScrollBar().setUnitIncrement(14);
+
+		if (GuiUtils.isLibrem()) {
+			// make the scroll bar width 30 instead of 20 when using a touch interface
+			mScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(30, 1));
+		}
 	}
 
 	public JComponent getComponent() {
@@ -87,6 +100,23 @@ public class DirectoryPicker {
 				}
 			}
 		});
+	}
+
+	public void scrollDownToNextPage() {
+		Rectangle oldView = mScrollPane.getVisibleRect();
+		int newY = oldView.y + oldView.height;
+		Rectangle newView = new Rectangle(oldView.x, newY, oldView.width, oldView.height);
+		mScrollPane.scrollRectToVisible(newView);
+	}
+
+	public void scrollUpToPriorPage() {
+		Rectangle oldView = mScrollPane.getVisibleRect();
+		int newY = oldView.y - oldView.height;
+		if (newY < 0) {
+			newY = 0;
+		}
+		Rectangle newView = new Rectangle(oldView.x, newY, oldView.width, oldView.height);
+		mScrollPane.scrollRectToVisible(newView);
 	}
 
 	/**
@@ -142,7 +172,8 @@ public class DirectoryPicker {
 
 	private class PathMenuItem extends JPanel {
 		private static final long serialVersionUID = 1L;
-		private static final Dimension BTN_DIM = new Dimension(ICON_SIZE + 5, ICON_SIZE + 5);
+		private static final String mTooltipPlay = "Play files in directory";
+		private static final String mTooltipPlayRec = "Play files in directory And Sub-directories";
 
 		public PathMenuItem(Path p, String displayLabel) {
 			JButton dir = new JButton(displayLabel);
@@ -150,11 +181,11 @@ public class DirectoryPicker {
 			JButton play = new JButton(mIconPlay);
 			JButton playRec = new JButton(mIconRecursive);
 
+			play.setToolTipText(mTooltipPlay);
+			playRec.setToolTipText(mTooltipPlayRec);
+
 			// make the directory button not obviously a button
 			dir.setBorderPainted(false);
-
-			play.setPreferredSize(BTN_DIM);
-			playRec.setPreferredSize(BTN_DIM);
 
 			JPanel btnPanel = new JPanel(new GridLayout(1, 0));
 			btnPanel.add(play);

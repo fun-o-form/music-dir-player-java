@@ -4,26 +4,21 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -34,16 +29,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.plaf.FontUIResource;
 
 import funoform.mdp.Controller;
 import funoform.mdp.Controller.SettingsListener;
 import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
+import funoform.mdp.gui.GestureDetector.IGestureListener;
 import funoform.mdp.types.SettingsChanged;
 
 // TODO: touch screen scroll-able song list and dir picker, or at least make the scroll bar bigger
@@ -69,7 +63,7 @@ public class Gui extends JPanel {
 	private JList<Path> mListSongs = new JList<>(mListSongModel);
 	private AtomicBoolean mDisableSongListEvents = new AtomicBoolean(false);
 	@SuppressWarnings("unused")
-	private GuiGestures mGestures = null;
+	private GestureDetector mGestures = null;
 
 	private Icon mIconPlay = null;
 	private Icon mIconPause = null;
@@ -117,6 +111,10 @@ public class Gui extends JPanel {
 
 		JPanel pnlCenter = new JPanel(new GridLayout(0, 1));
 		JScrollPane songs = new JScrollPane(mListSongs);
+		if (GuiUtils.isLibrem()) {
+			// make the scroll bar width 30 instead of 20 when using a touch interface
+			songs.getVerticalScrollBar().setPreferredSize(new Dimension(30, 1));
+		}
 		mListSongs.setCellRenderer(new PrettyPathRenderer());
 		pnlCenter.add(songs);
 
@@ -151,16 +149,16 @@ public class Gui extends JPanel {
 		mListSongs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		try {
-			mIconPlay = getIcon("icons8-play-64.png", BUTTON_SIZE);
-			mIconPause = getIcon("icons8-pause-64.png", BUTTON_SIZE);
+			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE);
+			mIconPause = GuiUtils.getIcon("icons8-pause-64.png", BUTTON_SIZE);
 			mBtnPlayPause.setIcon(mIconPlay);
-			mBtnBack.setIcon(getIcon("icons8-rewind-64.png", BUTTON_SIZE));
-			mBtnNext.setIcon(getIcon("icons8-fast-forward-64.png", BUTTON_SIZE));
-			mBtnStop.setIcon(getIcon("icons8-stop-64.png", BUTTON_SIZE));
-			mTbRandom.setSelectedIcon(getIcon("icons8-shuffle-64.png", BUTTON_SIZE));
-			mTbRandom.setIcon(getIcon("icons8-shuffle-64-colorless.png", BUTTON_SIZE));
-			mTbRepeat.setSelectedIcon(getIcon("icons8-repeat-64.png", BUTTON_SIZE));
-			mTbRepeat.setIcon(getIcon("icons8-repeat-64-colorless.png", BUTTON_SIZE));
+			mBtnBack.setIcon(GuiUtils.getIcon("icons8-rewind-64.png", BUTTON_SIZE));
+			mBtnNext.setIcon(GuiUtils.getIcon("icons8-fast-forward-64.png", BUTTON_SIZE));
+			mBtnStop.setIcon(GuiUtils.getIcon("icons8-stop-64.png", BUTTON_SIZE));
+			mTbRandom.setSelectedIcon(GuiUtils.getIcon("icons8-shuffle-64.png", BUTTON_SIZE));
+			mTbRandom.setIcon(GuiUtils.getIcon("icons8-shuffle-64-colorless.png", BUTTON_SIZE));
+			mTbRepeat.setSelectedIcon(GuiUtils.getIcon("icons8-repeat-64.png", BUTTON_SIZE));
+			mTbRepeat.setIcon(GuiUtils.getIcon("icons8-repeat-64-colorless.png", BUTTON_SIZE));
 		} catch (IOException e) {
 			sLogger.log(Level.WARNING, "Unable to load icons for GUI");
 		}
@@ -268,8 +266,8 @@ public class Gui extends JPanel {
 						mBtnStop.setEnabled(isSongPlaying);
 						if (isSongPlaying) {
 							mBtnPlayPause.setIcon(mIconPause);
-							String progress = secsToTimeStr(settings.pbPercentage.getCurTimeSecs()) + " / "
-									+ secsToTimeStr(settings.pbPercentage.getMaxTimeSecs());
+							String progress = GuiUtils.secsToTimeStr(settings.pbPercentage.getCurTimeSecs()) + " / "
+									+ GuiUtils.secsToTimeStr(settings.pbPercentage.getMaxTimeSecs());
 							mPbSongDuration.setString(progress);
 							mPbSongDuration.setStringPainted(true);
 						} else {
@@ -293,9 +291,11 @@ public class Gui extends JPanel {
 
 	/**
 	 * Hack that creates the correct type of top level window for the current
-	 * platform and makes that window visible.
+	 * platform and makes that window visible, then registers a listener for mouse
+	 * (touch screen) gestures.
 	 */
 	private void createWindowIfNeededAndSetVisible() {
+		RootPaneContainer topLevelWindow;
 
 		// PureOS runs applications with no menu bar. On Java, this results in some
 		// wonky behavior. If you run a JFrame, it will get set to its preferred size,
@@ -317,14 +317,15 @@ public class Gui extends JPanel {
 		//
 		// System.getProperties().list(System.out);
 		//
-		if (isLibrem()) {
+		if (GuiUtils.isLibrem()) {
+
 			// Just run with the title-bar-less JWindow. It works correctly on the Librem
 			// where the title bar and window buttons wouldn't be shown anyways
 			JWindow win = new JWindow();
 			win.getContentPane().add(this);
 			win.pack();
 			win.setVisible(true);
-			mGestures = new GuiGestures(mCtrl, win);
+			topLevelWindow = win;
 		} else {
 			// We are not on the Librem. Give the user the traditional JFrame experience
 			// which includes the title bar and min/max/close buttons.
@@ -332,14 +333,76 @@ public class Gui extends JPanel {
 			frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frm.setTitle("Fun-O-Form Music Dir Player");
 			try {
-				frm.setIconImage(getImage("icons8-play-64.png"));
+				frm.setIconImage(GuiUtils.getImage("icons8-play-64.png"));
 			} catch (IOException e) {
 				// Oh well
 			}
 			frm.getContentPane().add(this);
 			frm.pack();
 			frm.setVisible(true);
-			mGestures = new GuiGestures(mCtrl, frm);
+			topLevelWindow = frm;
+		}
+
+		// Detect mouse gestures over the entire window and respond accordingly
+		mGestures = new GestureDetector(topLevelWindow, new IGestureListener() {
+			@Override
+			public void gestureDetected(Gesture g) {
+
+				switch (g) {
+				case SWIPE_UP:
+					// make list go down, show lower entries
+					scrollListDown();
+					break;
+				case SWIPE_DOWN:
+					// make list go up, show higher entries
+					scrollListUp();
+					break;
+				case SWIPE_LEFT:
+					mCtrl.priorTrack();
+					break;
+				case SWIPE_RIGHT:
+					mCtrl.nextTrack();
+					break;
+				case TRIPLE_TAP:
+					// TODO: replace with play/pause once supported
+					mCtrl.stop();
+					break;
+				}
+			}
+		});
+	}
+
+	/**
+	 * Is smart enough to scroll the currently displayed list down, where we could
+	 * be displaying either the song list or the directory picker list.
+	 */
+	private void scrollListDown() {
+		if (mDirSelector.getComponent().isVisible()) {
+			mDirSelector.scrollDownToNextPage();
+		} else if (mListSongs.isVisible()) {
+			int numPerPage = mListSongs.getLastVisibleIndex() - mListSongs.getFirstVisibleIndex();
+			int lastOneNextPage = mListSongs.getLastVisibleIndex() + numPerPage;
+			if (lastOneNextPage > mListSongModel.getSize()) {
+				lastOneNextPage = mListSongModel.getSize();
+			}
+			mListSongs.ensureIndexIsVisible(lastOneNextPage);
+		}
+	}
+
+	/**
+	 * Is smart enough to scroll the currently displayed list up, where we could be
+	 * displaying either the song list or the directory picker list.
+	 */
+	private void scrollListUp() {
+		if (mDirSelector.getComponent().isVisible()) {
+			mDirSelector.scrollUpToPriorPage();
+		} else if (mListSongs.isVisible()) {
+			int numPerPage = mListSongs.getLastVisibleIndex() - mListSongs.getFirstVisibleIndex();
+			int firstOnePriorPage = mListSongs.getFirstVisibleIndex() - numPerPage;
+			if (firstOnePriorPage < 0) {
+				firstOnePriorPage = 0;
+			}
+			mListSongs.ensureIndexIsVisible(firstOnePriorPage);
 		}
 	}
 
@@ -359,86 +422,6 @@ public class Gui extends JPanel {
 			setText(p.getFileName().toString());
 			return this;
 		}
-	}
-
-	/**
-	 * Gets an image out of the jar's resources.
-	 * 
-	 * @param filename
-	 * @return
-	 * @throws IOException
-	 */
-	private static Image getImage(String filename) throws IOException {
-		return ImageIO.read(ClassLoader.getSystemResource("icons/" + filename));
-	}
-
-	/**
-	 * Gets an icon out of the jar's resources.
-	 * 
-	 * @param filename
-	 * @param size
-	 * @return
-	 * @throws IOException
-	 */
-	public static Icon getIcon(String filename, int size) throws IOException {
-		Image image = getImage(filename).getScaledInstance(size, size, Image.SCALE_DEFAULT);
-		Icon icon = new ImageIcon(image);
-		return icon;
-	}
-
-	/**
-	 * Converts a number of seconds (e.g. 245) into a human readable duration string
-	 * (e.g. 04:05). Will omit the hours unless the duration is over 1 hour long.
-	 * 
-	 * @param secs
-	 * @return
-	 */
-	private static String secsToTimeStr(long secs) {
-		int hours = (int) (secs / 3600);
-		int minutes = (int) ((secs % 3600) / 60);
-		int seconds = (int) (secs % 60);
-		// we always include minutes and seconds, but only include hours if the duration
-		// is at least 1 hour long
-		if (0 < hours) {
-			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-		} else {
-			return String.format("%02d:%02d", minutes, seconds);
-		}
-	}
-
-	/**
-	 * Sets all fonts globally in swing to be a different size.
-	 * 
-	 * This method is a hack. Normally you should trust the font size set at the
-	 * system level.
-	 * 
-	 * @param multiplier A multiplier of 1.0 is the standard font size. Passing in
-	 *                   1.2 will make all text 20% larger.
-	 */
-	public static void scaleAllFontSize(float multiplier) {
-		UIDefaults defaults = UIManager.getDefaults();
-		@SuppressWarnings("unused")
-		int i = 0;
-		for (Enumeration<Object> e = defaults.keys(); e.hasMoreElements(); i++) {
-			Object key = e.nextElement();
-			Object value = defaults.get(key);
-			if (value instanceof Font) {
-				Font font = (Font) value;
-				int newSize = Math.round(font.getSize() * multiplier);
-				if (value instanceof FontUIResource) {
-					defaults.put(key, new FontUIResource(font.getName(), font.getStyle(), newSize));
-				} else {
-					defaults.put(key, new Font(font.getName(), font.getStyle(), newSize));
-				}
-			}
-		}
-	}
-
-	public static boolean isLibrem() {
-		// On a Librem Evergreen running Byzantium, this returns "6.6.0-1-librem5"
-		String osVer = System.getProperties().getProperty("os.version");
-		boolean isLibrem = osVer.toLowerCase().contains("librem");
-		return isLibrem;
 	}
 
 	// about

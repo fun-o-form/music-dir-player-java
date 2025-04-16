@@ -15,6 +15,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.freedesktop.dbus.exceptions.DBusException;
 
 import funoform.mdp.gui.Gui;
+import funoform.mdp.gui.GuiUtils;
 
 public class Main {
 
@@ -55,12 +56,6 @@ public class Main {
 				System.out.println(laf.getClassName());
 			}
 
-			// The default font size, as utilized by Java at least, is too small on the
-			// librem5. Make it bigger. This must be done before creating any GUI components
-			if (Gui.isLibrem()) {
-				Gui.scaleAllFontSize(1.5f);
-			}
-
 			ConfigManager cfg = new ConfigManager();
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
@@ -72,6 +67,12 @@ public class Main {
 			}
 
 			Cli cli = new Cli(ctrl);
+
+			// The default font size, as utilized by Java at least, is too small on the
+			// librem5. Make it bigger. This must be done before creating any GUI components
+			if (GuiUtils.isLibrem()) {
+				GuiUtils.scaleAllFontSize(1.5f);
+			}
 			Gui gui = new Gui(ctrl);
 
 //		DBusInterface dbi = new DBusInterface(ctrl);
