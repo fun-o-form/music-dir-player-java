@@ -13,6 +13,10 @@ public class SettingsChanged {
 	public Path songPlaying;
 	public PlaybackPercentage pbPercentage;
 
+	public SettingsChanged() {
+		pbPercentage = new PlaybackPercentage(0, 0);
+	}
+	
 	/**
 	 * Performs a deep copy of a SettingsChanged object.
 	 */
@@ -52,7 +56,6 @@ public class SettingsChanged {
 		SettingsChanged blank = new SettingsChanged();
 		blank.songPlaying = null;
 		blank.playingDir = null;
-		blank.pbPercentage = new PlaybackPercentage(0, 0);
 		return blank;
 	}
 }

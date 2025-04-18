@@ -21,9 +21,9 @@
 	<dependencies>
 		<!--For playing MP3s-->
 		<dependency>
-		    <groupId>com.github.umjammer</groupId>
-		    <artifactId>jlayer</artifactId>
-		    <version>1.0.3</version>
+		   <groupId>com.github.goxr3plus</groupId>
+		   <artifactId>java-stream-player</artifactId>
+		   <version>10.0.0</version>
 		</dependency>
 		<!--For allowing multimedia control (MPRIS) on Linux-->
 		<dependency>
