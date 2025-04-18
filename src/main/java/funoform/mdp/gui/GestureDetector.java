@@ -268,7 +268,7 @@ public class GestureDetector implements MouseListener, MouseWheelListener, Mouse
 	@Override
 	public void mouseDragged(MouseEvent evt) {
 //		if (isMouseOnScrollBar(evt)) {
-		redispatchMouseEvent(evt);
+			redispatchMouseEvent(evt);
 //		}
 	}
 

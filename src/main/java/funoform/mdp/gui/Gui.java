@@ -40,16 +40,20 @@ import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
 import funoform.mdp.gui.GestureDetector.IGestureListener;
 import funoform.mdp.types.SettingsChanged;
 
-// TODO: touch screen scroll-able song list and dir picker, or at least make the scroll bar bigger
-
 /**
  * Provides a graphical user interface for controlling the music.
  */
 public class Gui extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Logger sLogger = Logger.getLogger(Gui.class.getName());
+	private static final int BUTTON_SIZE = 32;
+	private static final String CARD_MUSIC = "card-music";
+	private static final String CARD_DIR = "card-dir";
+
 	private Controller mCtrl;
-	private Path mCurBrowsingDir = null;
+	@SuppressWarnings("unused")
+//	private GestureDetector mGestures = null;
+
 	private JButton mBtnDir = new JButton();
 	private DirectoryPicker mDirSelector;
 	private JProgressBar mPbSongDuration = new JProgressBar(0, 0);
@@ -62,14 +66,12 @@ public class Gui extends JPanel {
 	private DefaultListModel<Path> mListSongModel = new DefaultListModel<>();
 	private JList<Path> mListSongs = new JList<>(mListSongModel);
 	private AtomicBoolean mDisableSongListEvents = new AtomicBoolean(false);
-	@SuppressWarnings("unused")
-	private GestureDetector mGestures = null;
+
+	private Path mCurBrowsingDir = null;
+	private Path mCurSongPlaying = null;
 
 	private Icon mIconPlay = null;
 	private Icon mIconPause = null;
-	private static final int BUTTON_SIZE = 32;
-	private static final String CARD_MUSIC = "card-music";
-	private static final String CARD_DIR = "card-dir";
 
 	public Gui(Controller ctrl) {
 		mCtrl = ctrl;
@@ -162,9 +164,6 @@ public class Gui extends JPanel {
 		} catch (IOException e) {
 			sLogger.log(Level.WARNING, "Unable to load icons for GUI");
 		}
-
-		// Don't let this get too small when there are no sub-directories, just ..
-//		mPopupDir.setPreferredSize(new Dimension(200, this.getHeight()));
 	}
 
 	private void addActionListeners() {
@@ -243,15 +242,24 @@ public class Gui extends JPanel {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						// show the current playing song, and scroll to that entry in the list, but
-						// don't fire the action listener
-						mDisableSongListEvents.set(true);
-						if (null != settings.songPlaying) {
-							mListSongs.setSelectedValue(settings.songPlaying, true);
-						} else {
-							mListSongs.clearSelection();
+
+						// if the song has changed since last time, consider scrolling the song list to
+						// the new song
+						if (mCurSongPlaying != settings.songPlaying) {
+							mCurSongPlaying = settings.songPlaying;
+							// show the current playing song, and scroll to that entry in the list, but
+							// don't fire the action listener
+							mDisableSongListEvents.set(true);
+							if (null != settings.songPlaying) {
+								if (mListSongs.getSelectedValue() == settings.songPlaying) {
+									// the correct song is already selected
+								} else {
+									// The song that just started playing wasn't selected. Select it
+									mListSongs.setSelectedValue(settings.songPlaying, true);
+								}
+							}
+							mDisableSongListEvents.set(false);
 						}
-						mDisableSongListEvents.set(false);
 
 						String dirLabel = settings.playingDir.getFileName().toString() + " (" + mListSongModel.getSize()
 								+ ")";
@@ -344,32 +352,31 @@ public class Gui extends JPanel {
 		}
 
 		// Detect mouse gestures over the entire window and respond accordingly
-		mGestures = new GestureDetector(topLevelWindow, new IGestureListener() {
-			@Override
-			public void gestureDetected(Gesture g) {
-
-				switch (g) {
-				case SWIPE_UP:
-					// make list go down, show lower entries
-					scrollListDown();
-					break;
-				case SWIPE_DOWN:
-					// make list go up, show higher entries
-					scrollListUp();
-					break;
-				case SWIPE_LEFT:
-					mCtrl.priorTrack();
-					break;
-				case SWIPE_RIGHT:
-					mCtrl.nextTrack();
-					break;
-				case TRIPLE_TAP:
-					// TODO: replace with play/pause once supported
-					mCtrl.stop();
-					break;
-				}
-			}
-		});
+//		mGestures = new GestureDetector(topLevelWindow, new IGestureListener() {
+//			@Override
+//			public void gestureDetected(Gesture g) {
+//
+//				switch (g) {
+//				case SWIPE_UP:
+//					// make list go down, show lower entries
+//					scrollListDown();
+//					break;
+//				case SWIPE_DOWN:
+//					// make list go up, show higher entries
+//					scrollListUp();
+//					break;
+//				case SWIPE_LEFT:
+//					mCtrl.priorTrack();
+//					break;
+//				case SWIPE_RIGHT:
+//					mCtrl.nextTrack();
+//					break;
+//				case TRIPLE_TAP:
+//					mCtrl.playPause();
+//					break;
+//				}
+//			}
+//		});
 	}
 
 	/**
