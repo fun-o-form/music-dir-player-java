@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +31,7 @@ public class Controller {
 	private SettingsChanged mSettings = new SettingsChanged();
 	private int mCurPlayingIndex = -1;
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
+	private AtomicBoolean mShouldBePlaying = new AtomicBoolean(false);
 
 	public Controller(Path startingDir) throws FileNotFoundException {
 		// Make sure the specified directory exists
@@ -46,7 +48,9 @@ public class Controller {
 			public void playbackStatusChanged(PlaybackStatus status) {
 				if (status.isPlaybackComplete) {
 					sLogger.log(Level.FINE, "Playback status changed: " + status);
-					nextTrack();
+					if (mShouldBePlaying.get()) {
+						nextTrack();
+					}
 				}
 
 				mSettings.pbPercentage = status.pbPercentage;
@@ -126,6 +130,7 @@ public class Controller {
 	public void playSong(int index) {
 		if (0 <= index && mQueuedMusicFiles.size() > index) {
 			stop();
+			mShouldBePlaying.set(true);
 			mCurPlayingIndex = index;
 			Path song = mQueuedMusicFiles.get(index);
 			mSettings.songPlaying = song;
@@ -171,6 +176,7 @@ public class Controller {
 	}
 
 	public void stop() {
+		mShouldBePlaying.set(false);
 		mPlayer.stop();
 		mCurPlayingIndex = -1;
 		mSettings.songPlaying = null;

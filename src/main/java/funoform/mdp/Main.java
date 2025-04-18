@@ -9,7 +9,6 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.freedesktop.dbus.exceptions.DBusException;
@@ -47,13 +46,6 @@ public class Main {
 				// Oh well, run with with whatever the default L&F is on this system. This is
 				// probably a windows platform thus doesn't support GTK
 				e.printStackTrace();
-			}
-
-			// TODO: remove this printout
-			LookAndFeelInfo[] lafs = UIManager.getInstalledLookAndFeels();
-			for (LookAndFeelInfo laf : lafs) {
-				System.out.println(laf.getName());
-				System.out.println(laf.getClassName());
 			}
 
 			ConfigManager cfg = new ConfigManager();
