@@ -35,7 +35,6 @@ public class MusicPlayer {
 					}
 
 					synchronized (mLockNowPlaying) {
-
 						// Get the player's current status (playing, stopped, paused, etc.)
 						Status s = mPlayer.getStatus();
 
@@ -59,7 +58,7 @@ public class MusicPlayer {
 
 						} else {
 							// Don't keep repeating ourselves when there is nothing new to report on
-							break;
+							continue;
 						}
 
 						// notify the listener of the current playback status

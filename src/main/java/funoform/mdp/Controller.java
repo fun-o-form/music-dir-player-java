@@ -33,15 +33,7 @@ public class Controller {
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
 	private AtomicBoolean mShouldBePlaying = new AtomicBoolean(false);
 
-	public Controller(Path startingDir) throws FileNotFoundException {
-		// Make sure the specified directory exists
-		if (!Files.exists(startingDir)) {
-			throw new FileNotFoundException(
-					"The specified starting directory does not exist or is not accessible: " + startingDir);
-		}
-
-		mSettings.playingDir = startingDir;
-
+	public Controller() throws FileNotFoundException {
 		// Receive notifications about playback % complete and when the song ends
 		mPlayer.init(new IPlaybackStatusListener() {
 			@Override
@@ -110,6 +102,7 @@ public class Controller {
 		// get a list of music files in the directory
 		try {
 			mQueuedMusicFiles = FileUtils.listMusicFiles(dir, recursive);
+			mSettings.queuedSongs = mQueuedMusicFiles.size();
 		} catch (IOException e) {
 			sLogger.log(Level.SEVERE, "Exception while trynig to open the directory to play. Directory = " + dir
 					+ ". Exception = " + e.getMessage());
@@ -242,9 +235,17 @@ public class Controller {
 		notifySettingsListeners();
 	}
 
+	public boolean getRandom() {
+		return mSettings.isRandom;
+	}
+
 	public void setRepeat(boolean isRepeat) {
 		mSettings.isRepeat = isRepeat;
 		notifySettingsListeners();
+	}
+
+	public boolean getRepeat() {
+		return mSettings.isRepeat;
 	}
 
 	public void registerSettingsListener(SettingsListener l) {

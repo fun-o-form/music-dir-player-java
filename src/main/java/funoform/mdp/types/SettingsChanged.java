@@ -11,6 +11,7 @@ public class SettingsChanged {
 	public boolean isRandom;
 	public Path playingDir;
 	public Path songPlaying;
+	public int queuedSongs;
 	public PlaybackPercentage pbPercentage;
 
 	public SettingsChanged() {
@@ -26,6 +27,7 @@ public class SettingsChanged {
 		c.isRandom = this.isRandom;
 		c.playingDir = this.playingDir;
 		c.songPlaying = this.songPlaying;
+		c.queuedSongs = this.queuedSongs;
 		c.pbPercentage = this.pbPercentage;
 		return c;
 	}
@@ -41,6 +43,8 @@ public class SettingsChanged {
 		sb.append(playingDir);
 		sb.append(", song=");
 		sb.append(songPlaying.getFileName().toString());
+		sb.append(", numQueued=");
+		sb.append(queuedSongs);
 		sb.append(", playback=");
 		sb.append(pbPercentage);
 		sb.append("]");

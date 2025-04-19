@@ -53,31 +53,38 @@
 					<target>17</target>
 				</configuration>
 			</plugin>
-	      	<!-- Embed all required depdencies into our jar and make it executable -->
-		      <plugin>
-		      	<groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-assembly-plugin</artifactId>
-		        <version>3.7.1</version>
-		        <configuration>
-		          <descriptorRefs>
-		            <descriptorRef>jar-with-dependencies</descriptorRef>
-		          </descriptorRefs>
-                  <archive>
-		            <manifest>
-		              <mainClass>funoform.mdp.Main</mainClass>
-		            </manifest>
-		          </archive>
-		        </configuration>
-                <executions>
-		          <execution>
-		            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-		            <phase>package</phase> <!-- bind to the packaging phase -->
-		            <goals>
-		              <goal>single</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-		    </plugin>
+		    <!-- Create lib directory with all our dependencies -->
+		    <plugin> 
+			    <artifactId>maven-dependency-plugin</artifactId> 
+			    <executions> 
+			      <execution> 
+			        <phase>install</phase> 
+			          <goals> 
+			            <goal>copy-dependencies</goal> 
+			          </goals> 
+			          <configuration> 
+			             <outputDirectory>${project.build.directory}/lib</outputDirectory> 
+			          </configuration> 
+			        </execution> 
+		      </executions> 
+    		</plugin>
+    		<!-- Make the jar runnable by specifying the file containing the main -->
+    		<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-jar-plugin</artifactId>
+			    <configuration>
+			        <archive>
+			            <manifest>
+			                <addClasspath>true</addClasspath>
+			                <classpathPrefix>lib</classpathPrefix>
+			                <mainClass>funoform.mdp.Main</mainClass>
+			            </manifest>
+			            <manifestEntries>
+			                <Class-Path>lib/</Class-Path>
+			            </manifestEntries>
+			        </archive>
+			    </configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

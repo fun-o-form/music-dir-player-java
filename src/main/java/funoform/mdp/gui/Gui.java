@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,7 +38,6 @@ import javax.swing.event.ListSelectionListener;
 import funoform.mdp.Controller;
 import funoform.mdp.Controller.SettingsListener;
 import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
-import funoform.mdp.gui.GestureDetector.IGestureListener;
 import funoform.mdp.types.SettingsChanged;
 
 /**
@@ -261,7 +261,7 @@ public class Gui extends JPanel {
 							mDisableSongListEvents.set(false);
 						}
 
-						String dirLabel = settings.playingDir.getFileName().toString() + " (" + mListSongModel.getSize()
+						String dirLabel = settings.playingDir.getFileName().toString() + " (" + settings.queuedSongs
 								+ ")";
 						mBtnDir.setText(dirLabel);
 						mPbSongDuration.setMinimum(0);
@@ -427,11 +427,13 @@ public class Gui extends JPanel {
 
 			Path p = (Path) value;
 			setText(p.getFileName().toString());
+
+			if (isSelected) {
+				// Make the selected row slightly easier to read at a glance
+				Font bigger = this.getFont().deriveFont(Font.BOLD, (float) (this.getFont().getSize2D() * 1.2));
+				this.setFont(bigger);
+			}
 			return this;
 		}
 	}
-
-	// about
-	// <a target="_blank" href="https://icons8.com/icon/7MtGYX1kdQnR/play">Play</a>
-	// icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 }

@@ -24,4 +24,12 @@ As a Java application this will run on a variety of platforms not just the Libre
 
 ## Installing on Librem5
 1. sudo apt install openjdk-17-jre (uses ~200Mb of disk space)
-2. 
+2. Copy jar to your phone
+3. Run with `java -jar ./...`
+
+## Open Source usage
+
+| What | How Used |
+| -- | -- |
+| (Java Stream Player (Library))[https://github.com/goxr3plus/java-stream-player/tree/master] | The backend for playing music files. | 
+| (Stencil Media Controls Icons)[https://icons8.com/icons/set/media-controls--style-stencil] | Icons used on the GUI. |

@@ -48,10 +48,13 @@ public class Main {
 				e.printStackTrace();
 			}
 
+			// TODO: load look and feel from config
+			// TODO: load font size from config
+			
 			ConfigManager cfg = new ConfigManager();
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
-			Controller ctrl = new Controller(startingDir);
+			Controller ctrl = new Controller();
 			ctrl.setRandom(cfg.getIsRandom());
 			ctrl.setRepeat(cfg.getIsRepeat());
 			if (cfg.getIsAutoStart()) {
