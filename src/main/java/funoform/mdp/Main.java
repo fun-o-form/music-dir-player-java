@@ -54,13 +54,7 @@ public class Main {
 			ConfigManager cfg = new ConfigManager();
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
-			Controller ctrl = new Controller();
-			ctrl.setRandom(cfg.getIsRandom());
-			ctrl.setRepeat(cfg.getIsRepeat());
-			if (cfg.getIsAutoStart()) {
-				ctrl.playDir(startingDir, false);
-			}
-
+			Controller ctrl = new Controller(cfg);
 			Cli cli = new Cli(ctrl);
 
 			// The default font size, as utilized by Java at least, is too small on the
@@ -69,6 +63,7 @@ public class Main {
 				GuiUtils.scaleAllFontSize(1.5f);
 			}
 			Gui gui = new Gui(ctrl);
+			
 
 //		DBusInterface dbi = new DBusInterface(ctrl);
 

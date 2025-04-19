@@ -1,6 +1,5 @@
 package funoform.mdp;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +25,7 @@ import funoform.mdp.types.SettingsChanged;
  */
 public class Controller {
 	private static final Logger sLogger = Logger.getLogger(Main.class.getName());
+	private ConfigManager mCfg;
 	private MusicPlayer mPlayer = new MusicPlayer();
 	private List<Path> mQueuedMusicFiles;
 	private SettingsChanged mSettings = new SettingsChanged();
@@ -33,7 +33,9 @@ public class Controller {
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
 	private AtomicBoolean mShouldBePlaying = new AtomicBoolean(false);
 
-	public Controller() throws FileNotFoundException {
+	public Controller(ConfigManager cfg) {
+		mCfg = cfg;
+
 		// Receive notifications about playback % complete and when the song ends
 		mPlayer.init(new IPlaybackStatusListener() {
 			@Override
@@ -49,6 +51,13 @@ public class Controller {
 				notifySettingsListeners();
 			}
 		});
+
+		// apply initial config
+		mSettings.isRandom = mCfg.getIsRandom();
+		mSettings.isRepeat = mCfg.getIsRepeat();
+		if (mCfg.getIsAutoStart()) {
+			playDir(Path.of(mCfg.getStartingDir()), mCfg.getIsRecursive());
+		}
 	}
 
 	public List<Path> getAvailableDirs(Path dir) {
@@ -179,7 +188,7 @@ public class Controller {
 
 	public void nextTrack() {
 		if (null == mQueuedMusicFiles || mQueuedMusicFiles.isEmpty()) {
-			System.out.println("There are no queued music files to play");
+			sLogger.log(Level.WARNING, "There are no queued music files to play");
 			stop();
 			return;
 		}
@@ -215,7 +224,7 @@ public class Controller {
 		}
 
 		if (null == mQueuedMusicFiles || mQueuedMusicFiles.isEmpty()) {
-			System.out.println("There are no queued music files to play");
+			sLogger.log(Level.WARNING, "There are no queued music files to play");
 			stop();
 			return;
 		}
@@ -246,6 +255,11 @@ public class Controller {
 
 	public boolean getRepeat() {
 		return mSettings.isRepeat;
+	}
+
+	public void exitApp(int returnCode) {
+		mCfg.savePreferences(mSettings);
+		System.exit(returnCode);
 	}
 
 	public void registerSettingsListener(SettingsListener l) {

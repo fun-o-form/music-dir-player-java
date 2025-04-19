@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -19,7 +21,6 @@ import java.util.logging.Logger;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -69,9 +70,6 @@ public class Gui extends JPanel {
 
 	private Path mCurBrowsingDir = null;
 	private Path mCurSongPlaying = null;
-
-	private Icon mIconPlay = null;
-	private Icon mIconPause = null;
 
 	public Gui(Controller ctrl) {
 		mCtrl = ctrl;
@@ -151,9 +149,7 @@ public class Gui extends JPanel {
 		mListSongs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		try {
-			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE);
-			mIconPause = GuiUtils.getIcon("icons8-pause-64.png", BUTTON_SIZE);
-			mBtnPlayPause.setIcon(mIconPlay);
+			mBtnPlayPause.setIcon(GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE));
 			mBtnBack.setIcon(GuiUtils.getIcon("icons8-rewind-64.png", BUTTON_SIZE));
 			mBtnNext.setIcon(GuiUtils.getIcon("icons8-fast-forward-64.png", BUTTON_SIZE));
 			mBtnStop.setIcon(GuiUtils.getIcon("icons8-stop-64.png", BUTTON_SIZE));
@@ -273,13 +269,11 @@ public class Gui extends JPanel {
 						boolean isSongPlaying = (0 < settings.pbPercentage.getMaxTimeSecs());
 						mBtnStop.setEnabled(isSongPlaying);
 						if (isSongPlaying) {
-							mBtnPlayPause.setIcon(mIconPause);
 							String progress = GuiUtils.secsToTimeStr(settings.pbPercentage.getCurTimeSecs()) + " / "
 									+ GuiUtils.secsToTimeStr(settings.pbPercentage.getMaxTimeSecs());
 							mPbSongDuration.setString(progress);
 							mPbSongDuration.setStringPainted(true);
 						} else {
-							mBtnPlayPause.setIcon(mIconPlay);
 							mPbSongDuration.setString("");
 							mPbSongDuration.setStringPainted(false);
 						}
@@ -338,7 +332,7 @@ public class Gui extends JPanel {
 			// We are not on the Librem. Give the user the traditional JFrame experience
 			// which includes the title bar and min/max/close buttons.
 			JFrame frm = new JFrame();
-			frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			frm.setTitle("Fun-O-Form Music Dir Player");
 			try {
 				frm.setIconImage(GuiUtils.getImage("icons8-play-64.png"));
@@ -348,6 +342,12 @@ public class Gui extends JPanel {
 			frm.getContentPane().add(this);
 			frm.pack();
 			frm.setVisible(true);
+			frm.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent arg0) {
+					mCtrl.exitApp(0);
+				}
+			});
 			topLevelWindow = frm;
 		}
 

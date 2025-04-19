@@ -202,7 +202,7 @@ public class Cli {
 					mCtrl.nextTrack();
 					break;
 				case "x":
-					System.exit(0);
+					mCtrl.exitApp(0);
 					break;
 				case "d":
 					handleDirCmd(mCtrl.getCurrentDir());
