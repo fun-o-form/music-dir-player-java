@@ -8,9 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
 import org.freedesktop.dbus.exceptions.DBusException;
 
 import funoform.mdp.gui.Gui;
@@ -39,18 +36,18 @@ public class Main {
 			// before the Gui is constructed otherwise it will end up with half the default
 			// and half the GTK theme. Note, we can't make this call in the Gui itself
 			// because by then we can't theme fully applied. Too bad.
-			try {
-				UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-					| UnsupportedLookAndFeelException e) {
-				// Oh well, run with with whatever the default L&F is on this system. This is
-				// probably a windows platform thus doesn't support GTK
-				e.printStackTrace();
-			}
+//			try {
+//				UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+//			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+//					| UnsupportedLookAndFeelException e) {
+//				// Oh well, run with with whatever the default L&F is on this system. This is
+//				// probably a windows platform thus doesn't support GTK
+//				e.printStackTrace();
+//			}
 
 			// TODO: load look and feel from config
 			// TODO: load font size from config
-			
+
 			ConfigManager cfg = new ConfigManager();
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
@@ -63,12 +60,8 @@ public class Main {
 				GuiUtils.scaleAllFontSize(1.5f);
 			}
 			Gui gui = new Gui(ctrl);
-			
 
-//		DBusInterface dbi = new DBusInterface(ctrl);
-
-			// TODO: before exiting, get current settings from ctrl and save them
-			// cfg.saveSettings(...);
+			// DBusInterface dbi = new DBusInterface(ctrl);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

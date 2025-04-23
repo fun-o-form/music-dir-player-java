@@ -68,7 +68,7 @@ public class ConfigManager {
 	public boolean getIsRepeat() {
 		return mPrefs.getBoolean(REPEAT, true);
 	}
-	
+
 	public boolean getIsRecursive() {
 		return mPrefs.getBoolean(RECURSIVE, false);
 	}
@@ -77,6 +77,11 @@ public class ConfigManager {
 		mPrefs.put(STARTING_DIR, newSettings.playingDir.toString());
 		mPrefs.putBoolean(RANDOM, newSettings.isRandom);
 		mPrefs.putBoolean(REPEAT, newSettings.isRepeat);
+		try {
+			mPrefs.flush();
+		} catch (BackingStoreException e) {
+			sLogger.log(Level.WARNING, "Failed to save preferences due to exception = " + e.getMessage());
+		}
 		// TODO: no way to change auto-start
 		// TODO: no way to change recursive
 	}

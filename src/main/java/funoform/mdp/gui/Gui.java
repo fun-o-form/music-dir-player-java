@@ -31,7 +31,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
-import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -67,6 +66,8 @@ public class Gui extends JPanel {
 	private DefaultListModel<Path> mListSongModel = new DefaultListModel<>();
 	private JList<Path> mListSongs = new JList<>(mListSongModel);
 	private AtomicBoolean mDisableSongListEvents = new AtomicBoolean(false);
+
+	private java.awt.Window mTopLevelWindow;
 
 	private Path mCurBrowsingDir = null;
 	private Path mCurSongPlaying = null;
@@ -297,8 +298,6 @@ public class Gui extends JPanel {
 	 * (touch screen) gestures.
 	 */
 	private void createWindowIfNeededAndSetVisible() {
-		RootPaneContainer topLevelWindow;
-
 		// PureOS runs applications with no menu bar. On Java, this results in some
 		// wonky behavior. If you run a JFrame, it will get set to its preferred size,
 		// then maximized, yet the content pane will remain the smaller preferred size.
@@ -327,7 +326,7 @@ public class Gui extends JPanel {
 			win.getContentPane().add(this);
 			win.pack();
 			win.setVisible(true);
-			topLevelWindow = win;
+			mTopLevelWindow = win;
 		} else {
 			// We are not on the Librem. Give the user the traditional JFrame experience
 			// which includes the title bar and min/max/close buttons.
@@ -342,14 +341,16 @@ public class Gui extends JPanel {
 			frm.getContentPane().add(this);
 			frm.pack();
 			frm.setVisible(true);
-			frm.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosed(WindowEvent arg0) {
-					mCtrl.exitApp(0);
-				}
-			});
-			topLevelWindow = frm;
+			mTopLevelWindow = frm;
 		}
+
+		// if someone closes the GUI, attempt to close the entire app
+		mTopLevelWindow.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent arg0) {
+				mCtrl.exitApp(0);
+			}
+		});
 
 		// Detect mouse gestures over the entire window and respond accordingly
 //		mGestures = new GestureDetector(topLevelWindow, new IGestureListener() {
@@ -377,6 +378,11 @@ public class Gui extends JPanel {
 //				}
 //			}
 //		});
+	}
+
+	public void shutdown() {
+		mTopLevelWindow.setVisible(false);
+		mTopLevelWindow.dispose();
 	}
 
 	/**

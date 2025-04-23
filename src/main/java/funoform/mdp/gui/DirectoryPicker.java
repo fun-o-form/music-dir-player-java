@@ -2,6 +2,7 @@ package funoform.mdp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -16,7 +17,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -43,7 +43,7 @@ public class DirectoryPicker {
 	private JScrollPane mScrollPane = new JScrollPane(mPanel);
 	private static final int MAX_DIR_CHARS = 40;
 	private static final int MAX_PARENTS = 3;
-	private static final int ICON_SIZE = 24;
+	private static final int BUTTON_SIZE = 32;
 	private Icon mIconPlay;
 	private Icon mIconRecursive;
 	private Controller mCtrl;
@@ -53,8 +53,8 @@ public class DirectoryPicker {
 		mListener = l;
 
 		try {
-			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", ICON_SIZE);
-			mIconRecursive = GuiUtils.getIcon("icons8-eject-64.png", ICON_SIZE);
+			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE);
+			mIconRecursive = GuiUtils.getIcon("icons8-eject-64.png", BUTTON_SIZE);
 		} catch (IOException e) {
 			// oh well, run without icons
 		}
@@ -86,16 +86,15 @@ public class DirectoryPicker {
 				mPanel.removeAll();
 				mPanel.invalidate();
 				mPanel.revalidate();
+				mPanel.repaint();
 
 				// Allow the user to go up from here to parent directories
 				processParents(p, 0);
 
-				mPanel.add(new JSeparator(JSeparator.HORIZONTAL));
-
 				// now list all the sub-directories
 				for (Path subDir : subDirs) {
 					PathMenuItem pmi = new PathMenuItem(subDir,
-							firstNChars(subDir.getFileName().toString(), MAX_DIR_CHARS));
+							firstNChars(subDir.getFileName().toString(), MAX_DIR_CHARS), false);
 					mPanel.add(pmi);
 				}
 			}
@@ -143,7 +142,7 @@ public class DirectoryPicker {
 			// There is no one older than me. Start creating the menu items with me as the
 			// oldest
 			String label = firstNChars(p.getFileName().toString() + "/", MAX_DIR_CHARS);
-			PathMenuItem pmi = new PathMenuItem(p, label);
+			PathMenuItem pmi = new PathMenuItem(p, label, true);
 			mPanel.add(pmi);
 		} else {
 			// I have a parent that is older than me. Indent based on my level relative to
@@ -155,7 +154,7 @@ public class DirectoryPicker {
 			sb.append(firstNChars(p.getFileName().toString(), MAX_DIR_CHARS));
 			sb.append("/");
 
-			PathMenuItem pmi = new PathMenuItem(p, sb.toString());
+			PathMenuItem pmi = new PathMenuItem(p, sb.toString(), true);
 			mPanel.add(pmi);
 		}
 
@@ -174,10 +173,22 @@ public class DirectoryPicker {
 		private static final long serialVersionUID = 1L;
 		private static final String mTooltipPlay = "Play files in directory";
 		private static final String mTooltipPlayRec = "Play files in directory And Sub-directories";
+		private static final int DESIRED_HEIGHT = 32;
+		private static final int MAX_HEIGHT = 60;
 
-		public PathMenuItem(Path p, String displayLabel) {
+		public PathMenuItem(Path p, String displayLabel, boolean isBold) {
+			// We may have just a couple directories on tall portrait screen. Don't let
+			// those few directories get too tall. It looks weird
+			this.setMaximumSize(new Dimension(Integer.MAX_VALUE, MAX_HEIGHT));
+			this.setPreferredSize(new Dimension(-1, DESIRED_HEIGHT));
+
 			JButton dir = new JButton(displayLabel);
 			dir.setHorizontalAlignment(SwingConstants.LEFT);
+			if (isBold) {
+				dir.setFont(dir.getFont().deriveFont(Font.BOLD));
+			} else {
+				dir.setFont(dir.getFont().deriveFont(Font.PLAIN));
+			}
 			JButton play = new JButton(mIconPlay);
 			JButton playRec = new JButton(mIconRecursive);
 
@@ -190,10 +201,11 @@ public class DirectoryPicker {
 			JPanel btnPanel = new JPanel(new GridLayout(1, 0));
 			btnPanel.add(play);
 			btnPanel.add(playRec);
+			btnPanel.setPreferredSize(new Dimension(MAX_HEIGHT, -1));
 
 			this.setLayout(new BorderLayout());
+			this.add(btnPanel, BorderLayout.WEST);
 			this.add(dir, BorderLayout.CENTER);
-			this.add(btnPanel, BorderLayout.LINE_END);
 
 			dir.addActionListener(new ActionListener() {
 				@Override

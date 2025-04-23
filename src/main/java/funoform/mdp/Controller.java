@@ -112,8 +112,9 @@ public class Controller {
 		try {
 			mQueuedMusicFiles = FileUtils.listMusicFiles(dir, recursive);
 			mSettings.queuedSongs = mQueuedMusicFiles.size();
+			saveSettings();
 		} catch (IOException e) {
-			sLogger.log(Level.SEVERE, "Exception while trynig to open the directory to play. Directory = " + dir
+			sLogger.log(Level.SEVERE, "Exception while trying to open the directory to play. Directory = " + dir
 					+ ". Exception = " + e.getMessage());
 			return;
 		}
@@ -242,6 +243,7 @@ public class Controller {
 	public void setRandom(boolean isRandom) {
 		mSettings.isRandom = isRandom;
 		notifySettingsListeners();
+		saveSettings();
 	}
 
 	public boolean getRandom() {
@@ -251,6 +253,7 @@ public class Controller {
 	public void setRepeat(boolean isRepeat) {
 		mSettings.isRepeat = isRepeat;
 		notifySettingsListeners();
+		saveSettings();
 	}
 
 	public boolean getRepeat() {
@@ -258,7 +261,7 @@ public class Controller {
 	}
 
 	public void exitApp(int returnCode) {
-		mCfg.savePreferences(mSettings);
+		saveSettings();
 		System.exit(returnCode);
 	}
 
@@ -281,6 +284,10 @@ public class Controller {
 				}
 			}
 		}
+	}
+
+	private void saveSettings() {
+		mCfg.savePreferences(mSettings);
 	}
 
 	/**

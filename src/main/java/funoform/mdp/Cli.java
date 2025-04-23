@@ -18,20 +18,22 @@ public class Cli {
 	private boolean mRecursive = false;
 
 	// Colors
-	private static final String ANSI_BLUE 		= "\u001B[0;34m";
-	private static final String ANSI_BLUE_BG 	= "\u001B[37;44m";
-	private static final String ANSI_RED 		= "\u001B[0;31m";
-	private static final String ANSI_RED_BG 	= "\u001B[37;101m";
+	private static final String ANSI_BLUE = "\u001B[0;34m";
+	private static final String ANSI_BLUE_BG = "\u001B[37;44m";
+	private static final String ANSI_RED = "\u001B[0;31m";
+	private static final String ANSI_RED_BG = "\u001B[37;101m";
 	private static final String ANSI_SWAP_FG_BG = "\u001B[7m";
-	private static final String ANSI_RESET 		= "\u001B[0m";
+	private static final String ANSI_RESET = "\u001B[0m";
 	// Cursor control. See
 	// https://gist.github.com/ConnerWill/d4b6c776b509add763e17f9f113fd25b
 	private static final String ANSI_ROW1_LEFT = "\u001B[1;0H";
 	private static final String ANSI_ROW2_LEFT = "\u001B[2;0H";
 	private static final String ANSI_ROW3_LEFT = "\u001B[3;0H";
 	private static final String ANSI_ROW4_LEFT = "\u001B[4;0H";
+	private static final String ANSI_ROW5_LEFT = "\u001B[5;0H";
 	private static final String ANSI_ERASE_SCREEN = "\u001B[2J";
 	private static final String ANSI_ERASE_LINE = "\u001B[2K";
+	private static final String ANSI_ERASE_SCREEN_FROM_CUR = "\u001B[0J";
 	private static final String ANSI_SAVE_CUR_POS = "\u001B7";
 	private static final String ANSI_RESTORE_CUR_POS = "\u001B8";
 
@@ -52,7 +54,7 @@ public class Cli {
 				if (!mPausePrintingStatus.get()) {
 					if (didSettingChangeMeaningfully(mLastPrintedSettings, newSettings)) {
 						mLastPrintedSettings = newSettings;
-						printStatus(newSettings, false, mRecursive);
+						printStatus(newSettings, true, mRecursive);
 					}
 				}
 			}
@@ -61,12 +63,12 @@ public class Cli {
 
 	public void stop() {
 		mShouldRun = false;
-		System.out.print(ANSI_ERASE_SCREEN + "Goodbye");
+		System.out.print(ANSI_ERASE_SCREEN + ANSI_ROW1_LEFT);
 		mThread.interrupt();
 		try {
 			mThread.join();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			// oh well
 		}
 	}
 
@@ -86,15 +88,16 @@ public class Cli {
 		if (redrawAll) {
 			System.out.print(ANSI_ERASE_SCREEN);
 			System.out.print(ANSI_ROW1_LEFT);
-			System.out.print("-------- Fun-O-Form Music Directory Player --------");
-		} else {
-			// Save the current cursor position so we can restore to it later. Saves from
-			// interrupting the users's typing of commands
+			System.out.print("cmd> ");
 			System.out.print(ANSI_SAVE_CUR_POS);
 		}
 
 		// row 2
-		System.out.print(ANSI_ROW2_LEFT + ANSI_ERASE_LINE);
+		System.out.print(ANSI_ROW2_LEFT);
+		System.out.print("-------- Fun-O-Form Music Directory Player --------");
+
+		// row 3
+		System.out.print(ANSI_ROW3_LEFT + ANSI_ERASE_LINE);
 		System.out.print(ANSI_BLUE_BG + String.format("[%4s]", newSettings.queuedSongs));
 		System.out.print(ANSI_RESET + " ");
 		if (null != newSettings.playingDir) {
@@ -102,8 +105,8 @@ public class Cli {
 		}
 		System.out.print(ANSI_RESET);
 
-		// row 3
-		System.out.print(ANSI_ROW3_LEFT + ANSI_ERASE_LINE);
+		// row 4
+		System.out.print(ANSI_ROW4_LEFT + ANSI_ERASE_LINE);
 		System.out.print(ANSI_RED_BG + String.format("[%3s%%]", newSettings.pbPercentage.getPercentage()));
 		System.out.print(ANSI_RESET + " ");
 		if (null != newSettings.songPlaying) {
@@ -112,8 +115,8 @@ public class Cli {
 		System.out.print(ANSI_RESET);
 		System.out.println("");
 
-		// row 4
-		System.out.print(ANSI_ROW4_LEFT + ANSI_ERASE_LINE);
+		// row 5
+		System.out.print(ANSI_ROW5_LEFT + ANSI_ERASE_LINE);
 		if (newSettings.isRandom) {
 			System.out.print(ANSI_SWAP_FG_BG + "[1-Random On]" + ANSI_RESET + " ");
 		} else {
@@ -132,17 +135,18 @@ public class Cli {
 
 		// [1-Random On] [2-Repeat Off] [3-Recursive On]
 
-		// row 5-n
+		// row 6-n
+		System.out.println("s - Stop");
+		System.out.println("n - Next");
+		System.out.println("x - Exit");
+		System.out.println("d - Specify Directory to Play");
+
 		if (redrawAll) {
-			System.out.println("s - Stop");
-			System.out.println("n - Next");
-			System.out.println("x - Exit");
-			System.out.println("d - Specify Directory to Play");
-			System.out.print("cmd>");
-		} else {
 			// Put the cursor back where it was before we started. If the user was typing in
 			// a command, they should be able to continue without their cursor jumping away
 			System.out.print(ANSI_RESTORE_CUR_POS);
+		} else {
+			System.out.print("\u001B[1;6H");
 		}
 	}
 
@@ -202,6 +206,7 @@ public class Cli {
 					mCtrl.nextTrack();
 					break;
 				case "x":
+					stop();
 					mCtrl.exitApp(0);
 					break;
 				case "d":
@@ -237,49 +242,70 @@ public class Cli {
 			System.out.print(ANSI_ROW1_LEFT);
 
 			System.out.println("-- " + curPath.toString() + " --");
-			System.out.println("0 - ../");
+			System.out.println("q - ../");
 
-			int max = Math.min(subDirs.size(), 10);
+			String options = "wertasdfgzxcvb";
+			int max = Math.min(subDirs.size(), options.length());
 			for (int i = 0; i < max; i++) {
-				System.out.println(i + 1 + " - " + subDirs.get(i).getFileName().toString());
+				System.out.println(options.charAt(i) + " - " + subDirs.get(i).getFileName().toString());
+			}
+			
+			if(subDirs.size()>options.length()) {
+				// let the user know we have cut off the number of directories we are showing
+				System.out.println("    ...");
 			}
 
-			System.out.println("d - Type it in yourself");
+			System.out.println("n - Type it in yourself");
 
 			String userInput = mScanner.nextLine();
 			Path selectedPath = null;
 			switch (userInput) {
-			case "0":
+			case "q":
 				selectedPath = curPath.getParent();
 				break;
-			case "1":
+			case "w":
 				selectedPath = subDirs.get(0);
 				break;
-			case "2":
+			case "e":
 				selectedPath = subDirs.get(1);
 				break;
-			case "3":
+			case "r":
 				selectedPath = subDirs.get(2);
 				break;
-			case "4":
+			case "t":
 				selectedPath = subDirs.get(3);
 				break;
-			case "5":
+			case "a":
 				selectedPath = subDirs.get(4);
 				break;
-			case "6":
+			case "s":
 				selectedPath = subDirs.get(5);
 				break;
-			case "7":
+			case "d":
 				selectedPath = subDirs.get(6);
 				break;
-			case "8":
+			case "f":
 				selectedPath = subDirs.get(7);
 				break;
-			case "9":
+			case "g":
 				selectedPath = subDirs.get(8);
 				break;
-			case "d":
+			case "z":
+				selectedPath = subDirs.get(9);
+				break;
+			case "x":
+				selectedPath = subDirs.get(10);
+				break;
+			case "c":
+				selectedPath = subDirs.get(11);
+				break;
+			case "v":
+				selectedPath = subDirs.get(12);
+				break;
+			case "b":
+				selectedPath = subDirs.get(13);
+				break;
+			case "n":
 				System.out.print(ANSI_ERASE_SCREEN);
 				System.out.print(ANSI_ROW1_LEFT);
 				System.out.println("Current = " + curPath.toString());

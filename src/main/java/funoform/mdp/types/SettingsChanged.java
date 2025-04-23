@@ -17,7 +17,7 @@ public class SettingsChanged {
 	public SettingsChanged() {
 		pbPercentage = new PlaybackPercentage(0, 0);
 	}
-	
+
 	/**
 	 * Performs a deep copy of a SettingsChanged object.
 	 */
@@ -42,7 +42,11 @@ public class SettingsChanged {
 		sb.append(", dir=");
 		sb.append(playingDir);
 		sb.append(", song=");
-		sb.append(songPlaying.getFileName().toString());
+		if (null != songPlaying) {
+			sb.append(songPlaying.getFileName().toString());
+		} else {
+			sb.append("none");
+		}
 		sb.append(", numQueued=");
 		sb.append(queuedSongs);
 		sb.append(", playback=");

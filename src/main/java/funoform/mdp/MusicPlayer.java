@@ -45,9 +45,19 @@ public class MusicPlayer {
 							// if a song is playing, report on the playback
 							mLastStatus = s;
 							pbs.isPlaybackComplete = false;
-							pbs.pbPercentage = new PlaybackPercentage(
-									mPlayer.getSourceDataLine().getMicrosecondPosition() / 1000000,
-									mPlayer.getDurationInSeconds());
+
+							long curTime = 0;
+							long totalTime = 0;
+							try {
+								// eve if the player said it was playing, there is no guarantee that on the next
+								// line it is still playing. If it just stopped playing, we will get a NPE.
+								// Ignore it
+								curTime = mPlayer.getSourceDataLine().getMicrosecondPosition() / 1000000;
+								totalTime = mPlayer.getDurationInSeconds();
+							} catch (Exception e) {
+								// just send a time of 0/0 and get a better update next time
+							}
+							pbs.pbPercentage = new PlaybackPercentage(curTime, totalTime);
 						} else if (s != mLastStatus) {
 							// if a song isn't play, notify the user the playback is complete. But only do
 							// this once immediately after playback stops. Don't keep sending the same
