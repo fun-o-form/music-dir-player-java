@@ -249,8 +249,8 @@ public class Cli {
 			for (int i = 0; i < max; i++) {
 				System.out.println(options.charAt(i) + " - " + subDirs.get(i).getFileName().toString());
 			}
-			
-			if(subDirs.size()>options.length()) {
+
+			if (subDirs.size() > options.length()) {
 				// let the user know we have cut off the number of directories we are showing
 				System.out.println("    ...");
 			}
@@ -319,7 +319,7 @@ public class Cli {
 
 			mPausePrintingStatus.set(false);
 			if (null != selectedPath) {
-				mCtrl.playDir(selectedPath, false);
+				mCtrl.playDir(selectedPath, mRecursive);
 			}
 		}
 	}
