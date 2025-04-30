@@ -27,7 +27,7 @@ public class Controller {
 	private static final Logger sLogger = Logger.getLogger(Main.class.getName());
 	private ConfigManager mCfg;
 	private MusicPlayer mPlayer = new MusicPlayer();
-	private List<Path> mQueuedMusicFiles;
+	private List<Path> mQueuedMusicFiles = new ArrayList<>();
 	private SettingsChanged mSettings = new SettingsChanged();
 	private int mCurPlayingIndex = -1;
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
@@ -57,6 +57,9 @@ public class Controller {
 		mSettings.isRepeat = mCfg.getIsRepeat();
 		if (mCfg.getIsAutoStart()) {
 			playDir(Path.of(mCfg.getStartingDir()), mCfg.getIsRecursive());
+		} else {
+			playDir(Path.of(mCfg.getStartingDir()), mCfg.getIsRecursive());
+			stop();
 		}
 	}
 

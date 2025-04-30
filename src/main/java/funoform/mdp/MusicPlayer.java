@@ -11,6 +11,10 @@ import com.goxr3plus.streamplayer.stream.StreamPlayerException;
 import funoform.mdp.types.PlaybackPercentage;
 import funoform.mdp.types.PlaybackStatus;
 
+/**
+ * The class responsible for actually reading the music file from disk and
+ * playing the audio.
+ */
 public class MusicPlayer {
 
 	private static final Logger sLogger = Logger.getLogger(MusicPlayer.class.getName());

@@ -30,6 +30,8 @@ public class ConfigManager {
 	private static final String REPEAT = "isRepeat";
 	private static final String RECURSIVE = "isRecursive";
 	private static final String AUTO_START = "isAutoStart";
+	private static final String FONT_SCALE = "fontScale";
+	private static final String SCROLL_BAR_WIDTH = "scrollBarWidth";
 
 	public ConfigManager() {
 		// log values at startup
@@ -60,6 +62,10 @@ public class ConfigManager {
 	public boolean getIsAutoStart() {
 		return mPrefs.getBoolean(AUTO_START, true);
 	}
+	
+	public void saveAutoStart(boolean autoStart) {
+		mPrefs.putBoolean(AUTO_START, autoStart);
+	}
 
 	public boolean getIsRandom() {
 		return mPrefs.getBoolean(RANDOM, false);
@@ -72,6 +78,24 @@ public class ConfigManager {
 	public boolean getIsRecursive() {
 		return mPrefs.getBoolean(RECURSIVE, false);
 	}
+
+	public float getFontScale() {
+		return mPrefs.getFloat(FONT_SCALE, 1.5f);
+	}
+
+	public void saveFontScale(float fontScale) {
+		mPrefs.putFloat(FONT_SCALE, fontScale);
+	}
+
+	public int getScrollBarWidth() {
+		return mPrefs.getInt(SCROLL_BAR_WIDTH, 30);
+	}
+
+	public void saveScrollBarWidth(int barWidth) {
+		mPrefs.putInt(SCROLL_BAR_WIDTH, barWidth);
+	}
+	
+	
 
 	public void savePreferences(SettingsChanged newSettings) {
 		mPrefs.put(STARTING_DIR, newSettings.playingDir.toString());

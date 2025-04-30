@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -35,9 +34,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import funoform.mdp.ConfigManager;
 import funoform.mdp.Controller;
 import funoform.mdp.Controller.SettingsListener;
 import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
+import funoform.mdp.gui.OptionsDialog.IOptionsDoneListener;
 import funoform.mdp.types.SettingsChanged;
 
 /**
@@ -49,18 +50,20 @@ public class Gui extends JPanel {
 	private static final int BUTTON_SIZE = 32;
 	private static final String CARD_MUSIC = "card-music";
 	private static final String CARD_DIR = "card-dir";
+	private static final String CARD_SETTINGS = "card-settings";
 
 	private Controller mCtrl;
-	@SuppressWarnings("unused")
 //	private GestureDetector mGestures = null;
+	private DirectoryPicker mDirSelector;
+	private OptionsDialog mOptsDialog;
 
 	private JButton mBtnDir = new JButton();
-	private DirectoryPicker mDirSelector;
 	private JProgressBar mPbSongDuration = new JProgressBar(0, 0);
 	private JButton mBtnPlayPause = new JButton();
 	private JButton mBtnNext = new JButton();
 	private JButton mBtnBack = new JButton();
 	private JButton mBtnStop = new JButton();
+	private JButton mBtnSettings = new JButton("S");
 	private JToggleButton mTbRandom = new JToggleButton();
 	private JToggleButton mTbRepeat = new JToggleButton();
 	private DefaultListModel<Path> mListSongModel = new DefaultListModel<>();
@@ -72,9 +75,16 @@ public class Gui extends JPanel {
 	private Path mCurBrowsingDir = null;
 	private Path mCurSongPlaying = null;
 
-	public Gui(Controller ctrl) {
+	public Gui(Controller ctrl, ConfigManager cfg) {
 		mCtrl = ctrl;
 		mCurBrowsingDir = mCtrl.getCurrentDir();
+		mOptsDialog = new OptionsDialog(cfg, new IOptionsDoneListener() {
+			@Override
+			public void doneWithOptions() {
+				CardLayout cl = (CardLayout) Gui.this.getLayout();
+				cl.show(Gui.this, CARD_MUSIC);
+			}
+		});
 
 		mDirSelector = new DirectoryPicker(mCtrl, new PathSelectionListener() {
 			@Override
@@ -101,7 +111,6 @@ public class Gui extends JPanel {
 	private void init() {
 		populateDirSongList();
 
-		JComponent cardDirPicker = mDirSelector.getComponent();
 		JPanel cardMusicPlayer = new JPanel();
 
 		JPanel pnlTop = new JPanel(new BorderLayout());
@@ -126,6 +135,7 @@ public class Gui extends JPanel {
 		pnlBottom.add(mBtnStop);
 		pnlBottom.add(mTbRandom);
 		pnlBottom.add(mTbRepeat);
+		pnlBottom.add(mBtnSettings);
 
 		cardMusicPlayer.setLayout(new BorderLayout());
 		cardMusicPlayer.add(pnlTop, BorderLayout.NORTH);
@@ -134,7 +144,8 @@ public class Gui extends JPanel {
 
 		this.setLayout(new CardLayout());
 		this.add(cardMusicPlayer, CARD_MUSIC);
-		this.add(cardDirPicker, CARD_DIR);
+		this.add(mDirSelector.getComponent(), CARD_DIR);
+		this.add(mOptsDialog.getComponent(), CARD_SETTINGS);
 		this.setPreferredSize(new Dimension(300, 400));
 
 		mBtnPlayPause.setToolTipText("Play/Pause");
@@ -145,6 +156,7 @@ public class Gui extends JPanel {
 		mTbRepeat.setToolTipText("Repeat All");
 		mPbSongDuration.setToolTipText("Song Playback Progress");
 		mBtnDir.setToolTipText("Current Playing Directory");
+		setSongDirBtnText(mCtrl.getCurrentDir(), mCtrl.getQueuedSongs().size());
 
 		// only allow the user to select at most one directory, same with songs
 		mListSongs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -206,6 +218,14 @@ public class Gui extends JPanel {
 			}
 		});
 
+		mBtnSettings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				CardLayout cl = (CardLayout) Gui.this.getLayout();
+				cl.show(Gui.this, CARD_SETTINGS);
+			}
+		});
+
 		mBtnDir.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -258,9 +278,7 @@ public class Gui extends JPanel {
 							mDisableSongListEvents.set(false);
 						}
 
-						String dirLabel = settings.playingDir.getFileName().toString() + " (" + settings.queuedSongs
-								+ ")";
-						mBtnDir.setText(dirLabel);
+						setSongDirBtnText(settings.playingDir, settings.queuedSongs);
 						mPbSongDuration.setMinimum(0);
 						mPbSongDuration.setMaximum((int) settings.pbPercentage.getMaxTimeSecs());
 						mPbSongDuration.setValue((int) settings.pbPercentage.getCurTimeSecs());
@@ -282,6 +300,11 @@ public class Gui extends JPanel {
 				});
 			}
 		});
+	}
+
+	private void setSongDirBtnText(Path dir, int count) {
+		String dirLabel = dir.getFileName().toString() + " (" + count + ")";
+		mBtnDir.setText(dirLabel);
 	}
 
 	private void populateDirSongList() {

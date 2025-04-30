@@ -45,9 +45,6 @@ public class Main {
 //				e.printStackTrace();
 //			}
 
-			// TODO: load look and feel from config
-			// TODO: load font size from config
-
 			ConfigManager cfg = new ConfigManager();
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
@@ -57,9 +54,9 @@ public class Main {
 			// The default font size, as utilized by Java at least, is too small on the
 			// librem5. Make it bigger. This must be done before creating any GUI components
 			if (GuiUtils.isLibrem()) {
-				GuiUtils.scaleAllFontSize(1.5f);
+				GuiUtils.scaleAllFontSize(cfg.getFontScale());
 			}
-			Gui gui = new Gui(ctrl);
+			Gui gui = new Gui(ctrl, cfg);
 
 			// DBusInterface dbi = new DBusInterface(ctrl);
 		} catch (Exception e) {

@@ -69,6 +69,7 @@ public class DirectoryPicker {
 
 		if (GuiUtils.isLibrem()) {
 			// make the scroll bar width 30 instead of 20 when using a touch interface
+			// TODO: read value from config
 			mScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(30, 1));
 		}
 	}
