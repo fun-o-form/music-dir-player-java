@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.freedesktop.dbus.exceptions.DBusException;
 
+import funoform.mdp.dbus.DBusInterface;
 import funoform.mdp.gui.Gui;
 import funoform.mdp.gui.GuiUtils;
 
@@ -58,7 +59,7 @@ public class Main {
 			}
 			Gui gui = new Gui(ctrl, cfg);
 
-			// DBusInterface dbi = new DBusInterface(ctrl);
+			DBusInterface dbi = new DBusInterface(ctrl, gui);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

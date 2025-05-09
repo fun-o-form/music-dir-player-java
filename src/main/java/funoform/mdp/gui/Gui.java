@@ -37,6 +37,7 @@ import javax.swing.event.ListSelectionListener;
 import funoform.mdp.ConfigManager;
 import funoform.mdp.Controller;
 import funoform.mdp.Controller.SettingsListener;
+import funoform.mdp.dbus.RaiseWindowRequestListener;
 import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
 import funoform.mdp.gui.OptionsDialog.IOptionsDoneListener;
 import funoform.mdp.types.SettingsChanged;
@@ -44,7 +45,7 @@ import funoform.mdp.types.SettingsChanged;
 /**
  * Provides a graphical user interface for controlling the music.
  */
-public class Gui extends JPanel {
+public class Gui extends JPanel implements RaiseWindowRequestListener {
 	private static final long serialVersionUID = 1L;
 	private static final Logger sLogger = Logger.getLogger(Gui.class.getName());
 	private static final int BUTTON_SIZE = 32;
@@ -464,5 +465,18 @@ public class Gui extends JPanel {
 			}
 			return this;
 		}
+	}
+
+	@Override
+	public void raiseWindowRequested() {
+		// attempt to make the window visible as requested by DBUS.
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				mTopLevelWindow.setVisible(true);
+				mTopLevelWindow.toFront();
+				mTopLevelWindow.repaint();
+			}
+		});
 	}
 }

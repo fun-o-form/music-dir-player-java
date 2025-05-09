@@ -1,7 +1,11 @@
-package funoform.mdp;
+package funoform.mdp.dbus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.freedesktop.dbus.DBusPath;
 import org.freedesktop.dbus.connections.impl.DBusConnection;
@@ -9,8 +13,13 @@ import org.freedesktop.dbus.connections.impl.DBusConnectionBuilder;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.handlers.AbstractPropertiesChangedHandler;
 import org.freedesktop.dbus.interfaces.Properties.PropertiesChanged;
+import org.freedesktop.dbus.types.Variant;
 import org.mpris.MediaPlayer2;
 import org.mpris.mediaplayer2.Player;
+
+import funoform.mdp.Controller;
+import funoform.mdp.Controller.SettingsListener;
+import funoform.mdp.types.SettingsChanged;
 
 /**
  * MPRIS (Media Player Remote Interfacing Specification). See:
@@ -28,10 +37,15 @@ import org.mpris.mediaplayer2.Player;
  * looks like class loading has changed since then. So I switched to the
  */
 public class DBusInterface implements MediaPlayer2, Player {
+	private static final Logger sLogger = Logger.getLogger(DBusInterface.class.getName());
 	private Controller mCtrl;
 	private DBusConnection mDbusConn;
+	private RaiseWindowRequestListener mRaiseListener;
+	private SettingsChanged mLastSettings = null;
 
-	public DBusInterface(Controller ctrl) throws DBusException {
+	public DBusInterface(Controller ctrl, RaiseWindowRequestListener l) throws DBusException {
+		mRaiseListener = l;
+
 		// TODO: anything needed to mute on receiving a phone call? Seems like Firefox
 		// mutes automatically and is unlikely to have read the modem/sim/network
 		// connection info over D-Bus (https://developer.puri.sm/Librem5/APIs.html)
@@ -47,11 +61,19 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 		// Export this object onto the bus using the path '/'
 		mDbusConn.exportObject(getObjectPath(), this);
+//		mDbusConn.sendMessage(null);
 
 		mDbusConn.addSigHandler(PropertiesChanged.class, new AbstractPropertiesChangedHandler() {
 			@Override
 			public void handle(PropertiesChanged _signal) {
 				System.out.println("DBus: Properties changed");
+			}
+		});
+
+		mCtrl.registerSettingsListener(new SettingsListener() {
+			@Override
+			public void settingsChanged(SettingsChanged newSettings) {
+				mLastSettings = newSettings;
 			}
 		});
 	}
@@ -71,6 +93,7 @@ public class DBusInterface implements MediaPlayer2, Player {
 	@Override
 	public void Previous() {
 		System.out.println("DBus: Previous");
+		mCtrl.priorTrack();
 	}
 
 	@Override
@@ -82,26 +105,30 @@ public class DBusInterface implements MediaPlayer2, Player {
 	@Override
 	public void Stop() {
 		System.out.println("DBus: Stop");
+		mCtrl.stop();
 	}
 
 	@Override
 	public void Play() {
 		System.out.println("DBus: Play");
+		mCtrl.playPause();
 	}
 
 	@Override
 	public void Pause() {
 		System.out.println("DBus: Pause");
+		mCtrl.playPause();
 	}
 
 	@Override
 	public void PlayPause() {
 		System.out.println("DBus: PlayPause");
+		mCtrl.playPause();
 	}
 
 	@Override
 	public void Seek(long _arg0) {
-		System.out.println("DBus: Seek");
+		sLogger.log(Level.WARNING, "DBus Seek is not supported");
 	}
 
 	@Override
@@ -111,17 +138,21 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 	@Override
 	public void SetPosition(DBusPath _arg0, long _arg1) {
-		System.out.println("DBus: SetPositon");
+		sLogger.log(Level.WARNING, "DBus SetPosition is not supported");
 	}
 
 	@Override
 	public void Quit() {
 		System.out.println("DBus: Quit");
+		mCtrl.exitApp(0);
 	}
 
 	@Override
 	public void Raise() {
 		System.out.println("DBus: Raise");
+		if (null != mRaiseListener) {
+			mRaiseListener.raiseWindowRequested();
+		}
 	}
 
 	@Override
@@ -146,22 +177,21 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 	@Override
 	public String getDesktopEntry() {
-		// TODO Auto-generated method stub
-		return null;
+		return "firefox";
 	}
 
 	@Override
-	public PropertySupportedMimeTypesType getSupportedMimeTypes() {
+	public List<String> getSupportedMimeTypes() {
 		List<String> ret = new ArrayList<>();
 		ret.add("audio/mpeg");
-		return (PropertySupportedMimeTypesType) ret;
+		return ret;
 	}
 
 	@Override
-	public PropertySupportedUriSchemesType getSupportedUriSchemes() {
+	public List<String> getSupportedUriSchemes() {
 		List<String> ret = new ArrayList<String>();
 		ret.add("file");
-		return (PropertySupportedUriSchemesType) ret;
+		return ret;
 	}
 
 	@Override
@@ -176,11 +206,12 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 	@Override
 	public boolean getCanSetFullscreen() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public void setFullscreen(boolean isFullscreen) {
+		sLogger.log(Level.WARNING, "DBus: setFullscreen is not supported");
 	}
 
 	@Override
@@ -191,5 +222,55 @@ public class DBusInterface implements MediaPlayer2, Player {
 	@Override
 	public boolean getCanRaise() {
 		return true;
+	}
+
+	@Override
+	public boolean getCanGoNext() {
+		return true;
+	}
+
+	@Override
+	public boolean getCanGoPrevious() {
+		return true;
+	}
+
+	@Override
+	public boolean getCanSeek() {
+		return false;
+	}
+
+	@Override
+	public boolean getShuffle() {
+		return true;
+	}
+
+	@Override
+	public void setShuffle(boolean shuffle) {
+		System.out.println("DBus: Shuffle");
+		mCtrl.setRandom(true); // TODO: probably not right any more
+	}
+
+	@Override
+	public String getPlaybackStatus() {
+		return "Playing"; // TODO: Playing, Paused, or Stopped
+	}
+
+	@Override
+	public Map<String, Variant<?>> getMetadata() {
+		// https://specifications.freedesktop.org/mpris-spec/latest/Track_List_Interface.html#Mapping:Metadata_Map
+		// https://www.freedesktop.org/wiki/Specifications/mpris-spec/metadata/
+		Map<String, Variant<?>> md = new HashMap<>();
+		md.put("mpris:trackid", new Variant<String>("notUsedButRequired"));
+		md.put("mpris:artUrl", new Variant<String>("https://upload.wikimedia.org/wikipedia/en/d/db/Clippy-letter.PNG")); // DISPLAYED
+
+		if (null != mLastSettings) {
+			int trackLenInMicroSecs = (int) (mLastSettings.pbPercentage.getMaxTimeSecs() * 10000);
+			md.put("mpris:length", new Variant<Integer>(trackLenInMicroSecs));
+			md.put("xesam:title", new Variant<String>(mLastSettings.songPlaying.getFileName().toString())); // DISPLAYED
+			md.put("xesam:album", new Variant<String>(mLastSettings.playingDir.getFileName().toString())); // DISPLAYED
+			String[] artist = { "myArtist" };
+			md.put("xesam:artist", new Variant<String[]>(artist)); // DISPLAYED
+		}
+		return md;
 	}
 }
