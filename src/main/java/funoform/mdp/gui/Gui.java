@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -56,6 +57,7 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 	private static final String CARD_SETTINGS = "card-settings";
 
 	private transient Controller mCtrl;
+	private transient ConfigManager mCfg;
 //	private GestureDetector mGestures = null;
 	private transient DirectoryPicker mDirSelector;
 	private transient OptionsDialog mOptsDialog;
@@ -68,7 +70,7 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 	private JButton mBtnNext = new JButton();
 	private JButton mBtnBack = new JButton();
 	private JButton mBtnStop = new JButton();
-	private JButton mBtnSettings = new JButton("S");
+	private JButton mBtnSettings = new JButton();
 	private JToggleButton mTbRandom = new JToggleButton();
 	private JToggleButton mTbRepeat = new JToggleButton();
 	private DefaultListModel<Path> mListSongModel = new DefaultListModel<>();
@@ -77,8 +79,12 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 
 	private java.awt.Window mTopLevelWindow;
 
+	private Icon mIconPlay;
+	private Icon mIconPause;
+
 	public Gui(Controller ctrl, ConfigManager cfg) {
 		mCtrl = ctrl;
+		mCfg = cfg;
 		mCurBrowsingDir = mCtrl.getCurrentDir();
 		mOptsDialog = new OptionsDialog(cfg, new IOptionsDoneListener() {
 			@Override
@@ -133,7 +139,9 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 		JPanel pnlBottom = new JPanel(new GridLayout(1, 0));
 		pnlBottom.add(mBtnPlayPause);
 		pnlBottom.add(mBtnNext);
-		pnlBottom.add(mBtnBack);
+		if (mCfg.getIsShowPrevTrackBtn()) {
+			pnlBottom.add(mBtnBack);
+		}
 		pnlBottom.add(mBtnStop);
 		pnlBottom.add(mTbRandom);
 		pnlBottom.add(mTbRepeat);
@@ -156,6 +164,7 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 		mBtnStop.setToolTipText("Stop");
 		mTbRandom.setToolTipText("Random");
 		mTbRepeat.setToolTipText("Repeat All");
+		mBtnSettings.setToolTipText("Settings");
 		mPbSongDuration.setToolTipText("Song Playback Progress");
 		mBtnDir.setToolTipText("Current Playing Directory");
 		setSongDirBtnText(mCtrl.getCurrentDir(), mCtrl.getQueuedSongs().size());
@@ -164,7 +173,10 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 		mListSongs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		try {
-			mBtnPlayPause.setIcon(GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE));
+			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE);
+			mIconPause = GuiUtils.getIcon("icons8-pause-64.png", BUTTON_SIZE);
+			mBtnPlayPause.setIcon(mIconPlay);
+
 			mBtnBack.setIcon(GuiUtils.getIcon("icons8-rewind-64.png", BUTTON_SIZE));
 			mBtnNext.setIcon(GuiUtils.getIcon("icons8-fast-forward-64.png", BUTTON_SIZE));
 			mBtnStop.setIcon(GuiUtils.getIcon("icons8-stop-64.png", BUTTON_SIZE));
@@ -172,6 +184,7 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 			mTbRandom.setIcon(GuiUtils.getIcon("icons8-shuffle-64-colorless.png", BUTTON_SIZE));
 			mTbRepeat.setSelectedIcon(GuiUtils.getIcon("icons8-repeat-64.png", BUTTON_SIZE));
 			mTbRepeat.setIcon(GuiUtils.getIcon("icons8-repeat-64-colorless.png", BUTTON_SIZE));
+			mBtnSettings.setIcon(GuiUtils.getIcon("menu-64.png", BUTTON_SIZE));
 		} catch (IOException e) {
 			sLogger.log(Level.WARNING, "Unable to load icons for GUI");
 		}
@@ -297,6 +310,12 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 						} else {
 							mPbSongDuration.setString("");
 							mPbSongDuration.setStringPainted(false);
+						}
+
+						if (settings.isPaused) {
+							mBtnPlayPause.setIcon(mIconPlay);
+						} else {
+							mBtnPlayPause.setIcon(mIconPause);
 						}
 					}
 				});

@@ -93,7 +93,9 @@ public class Controller {
 	}
 
 	public void playPause() {
-		mPlayer.togglePauseResume();
+		boolean isPlaying = mPlayer.togglePauseResume();
+		mSettings.isPaused = !isPlaying;
+		notifySettingsListeners();
 	}
 
 	public void playDir(Path dir, boolean recursive) {
@@ -141,6 +143,7 @@ public class Controller {
 			mCurPlayingIndex = index;
 			Path song = mQueuedMusicFiles.get(index);
 			mSettings.songPlaying = song;
+			mSettings.isPaused = false;
 			mPlayer.playMusicFile(song);
 			// immediately notify listeners so they don't have to wait up to half a second
 			// for an update triggered by the player

@@ -51,8 +51,11 @@ public class OptionsDialog {
 		JSpinner spinBarWidth = new JSpinner(new SpinnerNumberModel(mCm.getScrollBarWidth(), 5, 200, 1));
 		JCheckBox checkAutoStart = new JCheckBox("Automatically start playing music on startup");
 		checkAutoStart.setSelected(mCm.getIsAutoStart());
+		JCheckBox checkShowPrevBtn = new JCheckBox("Show the previous track button. Takes effect on next restart");
+		checkShowPrevBtn.setSelected(mCm.getIsShowPrevTrackBtn());
+
 		JButton btnBack = new JButton("Back");
-		
+
 		JPanel gbPnl = new JPanel(new GridBagLayout());
 
 		GridBagConstraints left = new GridBagConstraints();
@@ -91,9 +94,12 @@ public class OptionsDialog {
 		gbPnl.add(checkAutoStart, bottom);
 
 		bottom.gridy = 3;
+		gbPnl.add(checkShowPrevBtn, bottom);
+
+		bottom.gridy = 4;
 		bottom.anchor = GridBagConstraints.CENTER;
 		gbPnl.add(btnBack, bottom);
-		
+
 		mPnl.setLayout(new BorderLayout());
 		mPnl.add(gbPnl, BorderLayout.NORTH);
 
@@ -115,6 +121,13 @@ public class OptionsDialog {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				mCm.saveAutoStart(checkAutoStart.isSelected());
+			}
+		});
+
+		checkShowPrevBtn.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				mCm.saveShowPrevTrackBtn(checkShowPrevBtn.isSelected());
 			}
 		});
 

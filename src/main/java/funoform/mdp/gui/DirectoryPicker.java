@@ -54,7 +54,7 @@ public class DirectoryPicker {
 
 		try {
 			mIconPlay = GuiUtils.getIcon("icons8-play-64.png", BUTTON_SIZE);
-			mIconRecursive = GuiUtils.getIcon("icons8-eject-64.png", BUTTON_SIZE);
+			mIconRecursive = GuiUtils.getIcon("recursive-64.png", BUTTON_SIZE);
 		} catch (IOException e) {
 			// oh well, run without icons
 		}

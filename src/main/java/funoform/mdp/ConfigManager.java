@@ -32,6 +32,7 @@ public class ConfigManager {
 	private static final String AUTO_START = "isAutoStart";
 	private static final String FONT_SCALE = "fontScale";
 	private static final String SCROLL_BAR_WIDTH = "scrollBarWidth";
+	private static final String PREV_TRACK_BUTTON = "isShowPrevTrackButton";
 
 	public ConfigManager() {
 		// log values at startup
@@ -51,6 +52,7 @@ public class ConfigManager {
 		sLogger.log(Level.FINE, "   " + REPEAT + "=" + getIsRepeat());
 		sLogger.log(Level.FINE, "   " + RECURSIVE + "=" + getIsRecursive());
 		sLogger.log(Level.FINE, "   " + AUTO_START + "=" + getIsAutoStart());
+		sLogger.log(Level.FINE, "   " + PREV_TRACK_BUTTON + "=" + getIsAutoStart());
 	}
 
 	public String getStartingDir() {
@@ -65,6 +67,14 @@ public class ConfigManager {
 	
 	public void saveAutoStart(boolean autoStart) {
 		mPrefs.putBoolean(AUTO_START, autoStart);
+	}
+	
+	public boolean getIsShowPrevTrackBtn() {
+		return mPrefs.getBoolean(PREV_TRACK_BUTTON, false);
+	}
+	
+	public void saveShowPrevTrackBtn(boolean shouldShow) {
+		mPrefs.putBoolean(PREV_TRACK_BUTTON, shouldShow);
 	}
 
 	public boolean getIsRandom() {

@@ -9,6 +9,7 @@ import java.nio.file.Path;
 public class SettingsChanged {
 	public boolean isRepeat;
 	public boolean isRandom;
+	public boolean isPaused;
 	public Path playingDir;
 	public Path songPlaying;
 	public int queuedSongs;
@@ -25,6 +26,7 @@ public class SettingsChanged {
 		SettingsChanged c = new SettingsChanged();
 		c.isRepeat = this.isRepeat;
 		c.isRandom = this.isRandom;
+		c.isPaused = this.isPaused;
 		c.playingDir = this.playingDir;
 		c.songPlaying = this.songPlaying;
 		c.queuedSongs = this.queuedSongs;
@@ -39,6 +41,8 @@ public class SettingsChanged {
 		sb.append(isRepeat);
 		sb.append(", random=");
 		sb.append(isRandom);
+		sb.append(", paused=");
+		sb.append(isPaused);
 		sb.append(", dir=");
 		sb.append(playingDir);
 		sb.append(", song=");
@@ -64,6 +68,9 @@ public class SettingsChanged {
 		SettingsChanged blank = new SettingsChanged();
 		blank.songPlaying = null;
 		blank.playingDir = null;
+		blank.isRepeat = false;
+		blank.isRandom = false;
+		blank.isPaused = false;
 		return blank;
 	}
 }

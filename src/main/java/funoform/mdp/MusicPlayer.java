@@ -30,7 +30,7 @@ public class MusicPlayer {
 		mPlaybackMonitor = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while (true) {
+				while (!Thread.currentThread().isInterrupted()) {
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
@@ -78,7 +78,13 @@ public class MusicPlayer {
 						// notify the listener of the current playback status
 						synchronized (mPlaybackMonitor) {
 							if (null != mPbL) {
-								mPbL.playbackStatusChanged(pbs);
+								try {
+									mPbL.playbackStatusChanged(pbs);
+								} catch (Exception e) {
+									sLogger.log(Level.WARNING,
+											"Exeption while notifying playback status changed listener of update: "
+													+ e.getMessage());
+								}
 							}
 						}
 					}
@@ -102,16 +108,27 @@ public class MusicPlayer {
 		return true;
 	}
 
-	public void togglePauseResume() {
+	/**
+	 * If playing, this pauses the song and if paused, this resumes.
+	 * 
+	 * @return True if after this method has completed the music is playing. If
+	 *         after this method completes the song is paused, then this returns
+	 *         false.
+	 */
+	public boolean togglePauseResume() {
 		synchronized (mLockNowPlaying) {
 			if (mPlayer.isPlaying()) {
 				// pause
 				mPlayer.pause();
+				return false;
 			} else if (mPlayer.isPaused()) {
 				// resume
 				mPlayer.resume();
+				return true;
 			}
 		}
+		// nothing is playing
+		return false;
 	}
 
 	public void init(IPlaybackStatusListener l) {
