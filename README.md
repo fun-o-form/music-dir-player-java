@@ -27,6 +27,11 @@ As a Java application this will run on a variety of platforms not just the Libre
 2. Copy jar to your phone
 3. Run with `java -jar ./...`
 
+## Contributing
+
+Submit a pull request. Don't for get to check for new code quality issues.
+1. [SonarCloud](https://sonarcloud.io/projects) 
+
 ## Open Source usage
 
 | What | How Used |

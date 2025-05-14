@@ -61,7 +61,6 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 		// Export this object onto the bus using the path '/'
 		mDbusConn.exportObject(getObjectPath(), this);
-//		mDbusConn.sendMessage(null);
 
 		mDbusConn.addSigHandler(PropertiesChanged.class, new AbstractPropertiesChangedHandler() {
 			@Override
@@ -73,6 +72,8 @@ public class DBusInterface implements MediaPlayer2, Player {
 		mCtrl.registerSettingsListener(new SettingsListener() {
 			@Override
 			public void settingsChanged(SettingsChanged newSettings) {
+
+//				mDbusConn.sendMessage(new org.freedesktop.dbus.interfaces.Properties.PropertiesChanged(getObjectPath(), "org.mpris.MediaPlayer2.fofmusicdirplayer", getMetadata(), getSupportedMimeTypes());
 				mLastSettings = newSettings;
 			}
 		});

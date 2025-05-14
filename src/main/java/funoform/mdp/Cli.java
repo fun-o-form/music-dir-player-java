@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import funoform.mdp.Controller.SettingsListener;
 import funoform.mdp.types.SettingsChanged;
 
+@SuppressWarnings("squid:S106") // Don't raise SQ findings on using System.out
 public class Cli {
 	private Controller mCtrl;
 	private Thread mThread = new Thread(new CliRunnable());
@@ -33,6 +34,7 @@ public class Cli {
 	private static final String ANSI_ROW5_LEFT = "\u001B[5;0H";
 	private static final String ANSI_ERASE_SCREEN = "\u001B[2J";
 	private static final String ANSI_ERASE_LINE = "\u001B[2K";
+	@SuppressWarnings("unused")
 	private static final String ANSI_ERASE_SCREEN_FROM_CUR = "\u001B[0J";
 	private static final String ANSI_SAVE_CUR_POS = "\u001B7";
 	private static final String ANSI_RESTORE_CUR_POS = "\u001B8";
@@ -69,6 +71,7 @@ public class Cli {
 			mThread.join();
 		} catch (InterruptedException e) {
 			// oh well
+			mThread.interrupt();
 		}
 	}
 
@@ -101,7 +104,7 @@ public class Cli {
 		System.out.print(ANSI_BLUE_BG + String.format("[%4s]", newSettings.queuedSongs));
 		System.out.print(ANSI_RESET + " ");
 		if (null != newSettings.playingDir) {
-			System.out.print(ANSI_BLUE + lastNChars(newSettings.playingDir.toString(), 50));
+			System.out.print(ANSI_BLUE + DisplayUtils.getFileNameLengthLimited(newSettings.playingDir, 50));
 		}
 		System.out.print(ANSI_RESET);
 
@@ -110,7 +113,7 @@ public class Cli {
 		System.out.print(ANSI_RED_BG + String.format("[%3s%%]", newSettings.pbPercentage.getPercentage()));
 		System.out.print(ANSI_RESET + " ");
 		if (null != newSettings.songPlaying) {
-			System.out.print(ANSI_RED + lastNChars(newSettings.songPlaying.getFileName().toString(), 44));
+			System.out.print(ANSI_RED + DisplayUtils.getFileNameLengthLimited(newSettings.songPlaying, 44));
 		}
 		System.out.print(ANSI_RESET);
 		System.out.println("");
@@ -148,14 +151,6 @@ public class Cli {
 		} else {
 			System.out.print("\u001B[1;6H");
 		}
-	}
-
-	private static String lastNChars(String str, int numChars) {
-		if (str.length() > numChars) {
-			int start = str.length() - numChars;
-			return str.substring(start);
-		}
-		return str;
 	}
 
 	/**

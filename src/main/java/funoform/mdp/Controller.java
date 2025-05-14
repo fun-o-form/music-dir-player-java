@@ -32,6 +32,7 @@ public class Controller {
 	private int mCurPlayingIndex = -1;
 	private List<SettingsListener> mSettingsListeners = new ArrayList<>();
 	private AtomicBoolean mShouldBePlaying = new AtomicBoolean(false);
+	private Random mRandom = new Random();
 
 	public Controller(ConfigManager cfg) {
 		mCfg = cfg;
@@ -209,7 +210,7 @@ public class Controller {
 				}
 			}
 		} else {
-			nextIndex = new Random().nextInt(mQueuedMusicFiles.size());
+			nextIndex = mRandom.nextInt(mQueuedMusicFiles.size());
 		}
 
 		// sanity check the results then play that song
@@ -275,7 +276,7 @@ public class Controller {
 	}
 
 	private void notifySettingsListeners() {
-		SettingsChanged settingsCopy = mSettings.clone();
+		SettingsChanged settingsCopy = mSettings.copy();
 		synchronized (mSettingsListeners) {
 			for (SettingsListener sl : mSettingsListeners) {
 				try {

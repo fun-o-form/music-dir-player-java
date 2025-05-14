@@ -21,7 +21,7 @@ public class SettingsChanged {
 	/**
 	 * Performs a deep copy of a SettingsChanged object.
 	 */
-	public SettingsChanged clone() {
+	public SettingsChanged copy() {
 		SettingsChanged c = new SettingsChanged();
 		c.isRepeat = this.isRepeat;
 		c.isRandom = this.isRandom;

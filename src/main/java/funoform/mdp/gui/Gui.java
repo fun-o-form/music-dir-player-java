@@ -31,12 +31,14 @@ import javax.swing.JToggleButton;
 import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import funoform.mdp.ConfigManager;
 import funoform.mdp.Controller;
 import funoform.mdp.Controller.SettingsListener;
+import funoform.mdp.DisplayUtils;
 import funoform.mdp.dbus.RaiseWindowRequestListener;
 import funoform.mdp.gui.DirectoryPicker.PathSelectionListener;
 import funoform.mdp.gui.OptionsDialog.IOptionsDoneListener;
@@ -53,10 +55,12 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 	private static final String CARD_DIR = "card-dir";
 	private static final String CARD_SETTINGS = "card-settings";
 
-	private Controller mCtrl;
+	private transient Controller mCtrl;
 //	private GestureDetector mGestures = null;
-	private DirectoryPicker mDirSelector;
-	private OptionsDialog mOptsDialog;
+	private transient DirectoryPicker mDirSelector;
+	private transient OptionsDialog mOptsDialog;
+	private transient Path mCurBrowsingDir = null;
+	private transient Path mCurSongPlaying = null;
 
 	private JButton mBtnDir = new JButton();
 	private JProgressBar mPbSongDuration = new JProgressBar(0, 0);
@@ -72,9 +76,6 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 	private AtomicBoolean mDisableSongListEvents = new AtomicBoolean(false);
 
 	private java.awt.Window mTopLevelWindow;
-
-	private Path mCurBrowsingDir = null;
-	private Path mCurSongPlaying = null;
 
 	public Gui(Controller ctrl, ConfigManager cfg) {
 		mCtrl = ctrl;
@@ -355,7 +356,7 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 			// We are not on the Librem. Give the user the traditional JFrame experience
 			// which includes the title bar and min/max/close buttons.
 			JFrame frm = new JFrame();
-			frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			frm.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			frm.setTitle("Fun-O-Form Music Dir Player");
 			try {
 				frm.setIconImage(GuiUtils.getImage("icons8-play-64.png"));
@@ -456,7 +457,8 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
 			Path p = (Path) value;
-			setText(p.getFileName().toString());
+			// strip the extension before display
+			setText(DisplayUtils.getFileNameLengthLimited(p, -1));
 
 			if (isSelected) {
 				// Make the selected row slightly easier to read at a glance

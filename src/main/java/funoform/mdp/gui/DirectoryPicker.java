@@ -172,8 +172,8 @@ public class DirectoryPicker {
 
 	private class PathMenuItem extends JPanel {
 		private static final long serialVersionUID = 1L;
-		private static final String mTooltipPlay = "Play files in directory";
-		private static final String mTooltipPlayRec = "Play files in directory And Sub-directories";
+		private static final String TOOLTIP_PLAY = "Play files in directory";
+		private static final String TOOLTIP_PLAY_REC = "Play files in directory And Sub-directories";
 		private static final int DESIRED_HEIGHT = 32;
 		private static final int MAX_HEIGHT = 60;
 
@@ -193,8 +193,8 @@ public class DirectoryPicker {
 			JButton play = new JButton(mIconPlay);
 			JButton playRec = new JButton(mIconRecursive);
 
-			play.setToolTipText(mTooltipPlay);
-			playRec.setToolTipText(mTooltipPlayRec);
+			play.setToolTipText(TOOLTIP_PLAY);
+			playRec.setToolTipText(TOOLTIP_PLAY_REC);
 
 			// make the directory button not obviously a button
 			dir.setBorderPainted(false);

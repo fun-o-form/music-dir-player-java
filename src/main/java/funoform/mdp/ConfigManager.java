@@ -79,12 +79,12 @@ public class ConfigManager {
 		return mPrefs.getBoolean(RECURSIVE, false);
 	}
 
-	public float getFontScale() {
-		return mPrefs.getFloat(FONT_SCALE, 1.5f);
+	public double getFontScale() {
+		return mPrefs.getDouble(FONT_SCALE, 1.5d);
 	}
 
-	public void saveFontScale(float fontScale) {
-		mPrefs.putFloat(FONT_SCALE, fontScale);
+	public void saveFontScale(double fontScale) {
+		mPrefs.putDouble(FONT_SCALE, fontScale);
 	}
 
 	public int getScrollBarWidth() {

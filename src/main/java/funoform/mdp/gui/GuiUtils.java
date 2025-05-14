@@ -22,7 +22,7 @@ public class GuiUtils {
 	 * @param multiplier A multiplier of 1.0 is the standard font size. Passing in
 	 *                   1.2 will make all text 20% larger.
 	 */
-	public static void scaleAllFontSize(float multiplier) {
+	public static void scaleAllFontSize(double multiplier) {
 		UIDefaults defaults = UIManager.getDefaults();
 		@SuppressWarnings("unused")
 		int i = 0;
@@ -31,7 +31,7 @@ public class GuiUtils {
 			Object value = defaults.get(key);
 			if (value instanceof Font) {
 				Font font = (Font) value;
-				int newSize = Math.round(font.getSize() * multiplier);
+				int newSize = (int)Math.round(font.getSize() * multiplier);
 				if (value instanceof FontUIResource) {
 					defaults.put(key, new FontUIResource(font.getName(), font.getStyle(), newSize));
 				} else {

@@ -100,7 +100,7 @@ public class OptionsDialog {
 		spinFontScale.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				mCm.saveFontScale((float) spinFontScale.getModel().getValue());
+				mCm.saveFontScale((double) spinFontScale.getModel().getValue());
 			}
 		});
 
