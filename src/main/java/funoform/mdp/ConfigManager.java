@@ -33,6 +33,7 @@ public class ConfigManager {
 	private static final String FONT_SCALE = "fontScale";
 	private static final String SCROLL_BAR_WIDTH = "scrollBarWidth";
 	private static final String PREV_TRACK_BUTTON = "isShowPrevTrackButton";
+	private static final String LOOK_AND_FEEL = "lookAndFeel";
 
 	public ConfigManager() {
 		// log values at startup
@@ -53,6 +54,7 @@ public class ConfigManager {
 		sLogger.log(Level.FINE, "   " + RECURSIVE + "=" + getIsRecursive());
 		sLogger.log(Level.FINE, "   " + AUTO_START + "=" + getIsAutoStart());
 		sLogger.log(Level.FINE, "   " + PREV_TRACK_BUTTON + "=" + getIsAutoStart());
+		sLogger.log(Level.FINE, "   " + LOOK_AND_FEEL + "=" + getLookAndFeel());
 	}
 
 	public String getStartingDir() {
@@ -105,6 +107,13 @@ public class ConfigManager {
 		mPrefs.putInt(SCROLL_BAR_WIDTH, barWidth);
 	}
 	
+	public String getLookAndFeel() {
+		return mPrefs.get(LOOK_AND_FEEL, null);
+	}
+	
+	public void saveLookAndFeel(String laf) {
+		mPrefs.put(LOOK_AND_FEEL, laf);
+	}
 	
 
 	public void savePreferences(SettingsChanged newSettings) {
@@ -116,7 +125,6 @@ public class ConfigManager {
 		} catch (BackingStoreException e) {
 			sLogger.log(Level.WARNING, "Failed to save preferences due to exception = " + e.getMessage());
 		}
-		// TODO: no way to change auto-start
 		// TODO: no way to change recursive
 	}
 }

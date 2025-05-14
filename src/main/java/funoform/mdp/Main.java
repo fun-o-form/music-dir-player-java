@@ -8,6 +8,9 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
 import org.freedesktop.dbus.exceptions.DBusException;
 
 import funoform.mdp.dbus.DBusInterface;
@@ -33,21 +36,24 @@ public class Main {
 			}
 			sLogger.log(Level.INFO, "Starting Player");
 
+			ConfigManager cfg = new ConfigManager();
+			Path startingDir = Paths.get(cfg.getStartingDir());
+
 			// Set the Swing look and feel. This only impacts the Gui, but must be done
 			// before the Gui is constructed otherwise it will end up with half the default
 			// and half the GTK theme. Note, we can't make this call in the Gui itself
 			// because by then we can't theme fully applied. Too bad.
-//			try {
-//				UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-//			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-//					| UnsupportedLookAndFeelException e) {
-//				// Oh well, run with with whatever the default L&F is on this system. This is
-//				// probably a windows platform thus doesn't support GTK
-//				e.printStackTrace();
-//			}
-
-			ConfigManager cfg = new ConfigManager();
-			Path startingDir = Paths.get(cfg.getStartingDir());
+			String laf = cfg.getLookAndFeel();
+			if (null != laf) {
+				try {
+					UIManager.setLookAndFeel(laf);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+						| UnsupportedLookAndFeelException e) {
+					// Oh well, run with with whatever the default L&F is on this system. This is
+					// probably a windows platform thus doesn't support GTK
+					sLogger.log(Level.WARNING, "Failed to set look and feel. Will run with default. " + e.getMessage());
+				}
+			}
 
 			Controller ctrl = new Controller(cfg);
 			Cli cli = new Cli(ctrl);

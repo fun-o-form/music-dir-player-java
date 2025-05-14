@@ -16,6 +16,10 @@ import java.util.stream.Stream;
 
 public class FileUtils {
 
+	// Just a bunch of static methods so don't let someone create this thing
+	private FileUtils() {
+	}
+
 	public static List<Path> getSubDirectories(Path startingDir) throws IOException {
 		DirectoryStream.Filter<Path> hiddenFilter = new DirectoryStream.Filter<Path>() {
 			@Override
@@ -66,8 +70,14 @@ public class FileUtils {
 	}
 
 	private static boolean isSupportedAudioFile(Path path) {
-		// TODO: does this work for *.MP3 as well?
-		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.mp3");
+		// Globs are case sensitive on case sensitive operating systems. Our quick fix
+		// is just to look for the various permutations of upper and lower case song
+		// extensions. The alternative is to get every file and match on our own code.
+
+		// NOTE: We could add flacs to our list, e.g.
+		// "glob:*.{mp3,MP3,Mp3,flac,Flac,FLAC}". But flacs only seem to work half the
+		// time with our music playing library. So just leave flacs out for now.
+		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.{mp3,MP3,Mp3}");
 		return matcher.matches(path.getFileName());
 	}
 }

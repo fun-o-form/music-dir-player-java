@@ -8,6 +8,10 @@ import java.nio.file.Path;
  */
 public class DisplayUtils {
 
+	// Just a bunch of static methods so don't let someone create this thing
+	private DisplayUtils() {
+	}
+
 	/**
 	 * Returns just the file name with leading paths and trailing extension removed.
 	 * Also optionally limited to a maximum string length.
