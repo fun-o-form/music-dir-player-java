@@ -38,3 +38,14 @@ Submit a pull request. Don't for get to check for new code quality issues.
 | -- | -- |
 | (Java Stream Player (Library))[https://github.com/goxr3plus/java-stream-player/tree/master] | The backend for playing music files. | 
 | (Stencil Media Controls Icons)[https://icons8.com/icons/set/media-controls--style-stencil] | Icons used on the GUI. |
+
+## Profiling
+Profiling is done using Yourkit Java Profiler.
+
+![Yourkit logo](https://www.yourkit.com/images/yklogo.png "Yourkit Java Profiler")
+
+YourKit supports open source projects with innovative and intelligent tools 
+for monitoring and profiling Java and .NET applications.
+YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>,
+<a href="https://www.yourkit.com/dotnet-profiler/">YourKit .NET Profiler</a>,
+and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.
