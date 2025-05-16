@@ -36,8 +36,8 @@ Submit a pull request. Don't for get to check for new code quality issues.
 
 | What | How Used |
 | -- | -- |
-| (Java Stream Player (Library))[https://github.com/goxr3plus/java-stream-player/tree/master] | The backend for playing music files. | 
-| (Stencil Media Controls Icons)[https://icons8.com/icons/set/media-controls--style-stencil] | Icons used on the GUI. |
+| [Java Stream Player (Library)](https://github.com/goxr3plus/java-stream-player/tree/master) | The back end for playing music files. | 
+| [Stencil Media Controls Icons](https://icons8.com/icons/set/media-controls--style-stencil) | Icons used on the GUI. |
 
 ## Profiling
 Profiling is done using Yourkit Java Profiler.
