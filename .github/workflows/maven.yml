@@ -26,14 +26,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+        
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-  # Save the entire target directory for easy download by users
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
     - name: Save jars
       uses: actions/upload-artifact@v4.6.2
       with:
