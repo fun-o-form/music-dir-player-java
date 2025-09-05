@@ -99,7 +99,7 @@ public class MusicPlayer {
 		mPlaybackMonitor.start();
 	}
 
-	public synchronized boolean playMusicFile(Path path) {
+	public boolean playMusicFile(Path path) {
 		synchronized (mLockNowPlaying) {
 			stop();
 			try {
