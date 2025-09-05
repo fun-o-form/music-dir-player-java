@@ -23,10 +23,11 @@ public class MusicPlayer {
 	private Object mLockNowPlaying = new Object();
 	private StreamPlayer mPlayer = new StreamPlayer(sLogger);
 	private Status mLastStatus = Status.NOT_SPECIFIED;
+	private long mCurSongDurSecs = -1;
 
 	public MusicPlayer() {
 
-		// monitor the song playback by running this task every second
+		// monitor the song playback by running this task periodically
 		mPlaybackMonitor = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -51,20 +52,24 @@ public class MusicPlayer {
 							pbs.isPlaybackComplete = false;
 
 							long curTime = 0;
-							long totalTime = 0;
 							try {
-								// eve if the player said it was playing, there is no guarantee that on the next
-								// line it is still playing. If it just stopped playing, we will get a NPE.
+								// Even if the player said it was playing, there is no guarantee that on the
+								// next line it is still playing. If it just stopped playing, we will get a NPE.
 								// Ignore it
 								curTime = mPlayer.getSourceDataLine().getMicrosecondPosition() / 1000000;
-								totalTime = mPlayer.getDurationInSeconds();
+
+								// Getting the song duration is expensive as mp3 tags are read. Only do once
+								// until the song changes
+								if (-1 == mCurSongDurSecs) {
+									mCurSongDurSecs = mPlayer.getDurationInSeconds();
+								}
 							} catch (Exception e) {
 								// just send a time of 0/0 and get a better update next time
 							}
-							pbs.pbPercentage = new PlaybackPercentage(curTime, totalTime);
+							pbs.pbPercentage = new PlaybackPercentage(curTime, mCurSongDurSecs);
 						} else if (s != mLastStatus) {
-							// if a song isn't play, notify the user the playback is complete. But only do
-							// this once immediately after playback stops. Don't keep sending the same
+							// if a song isn't playing, notify the user the playback is complete. But only
+							// do this once immediately after playback stops. Don't keep sending the same
 							// playback complete status over and over
 							mLastStatus = s;
 							pbs.isPlaybackComplete = true;
@@ -100,6 +105,8 @@ public class MusicPlayer {
 			try {
 				mPlayer.open(path.toFile());
 				mPlayer.play();
+				// force reading the new songs duration
+				mCurSongDurSecs = -1;
 			} catch (StreamPlayerException e) {
 				sLogger.log(Level.SEVERE, "Exception while trying to start playing the song: " + e.getMessage());
 			}
