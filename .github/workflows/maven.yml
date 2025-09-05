@@ -10,15 +10,14 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 jobs:
+  # Compile the code
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
@@ -29,3 +28,20 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+
+  # Save the entire target directory for easy download by users
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Save jars
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: target
+        path: ./target/*
+        if-no-files-found: warn
+        retention-days: 0
+        compression-level: 0
+        overwrite: true
+        include-hidden-files: false
+            
