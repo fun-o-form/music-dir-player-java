@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        repository: 'fun-o-form/java-stream-player-minus-jitpack'
+        repository: 'fun-o-form/java-stream-player-fork'
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -34,11 +34,15 @@ jobs:
     - name: Build with Maven
       run: mvn install
       
+    # ~/.m2 contains the built jars for java-stream-player-fork. Make this cache
+    # available to our next job that actually builds mdp. Eliminates need to publish
+    # jars to someplace like maven central. Name the cache after the github run and
+    # attempt so we are sure our cache is only used for this specific workflow execution.
     - name: Cache Maven packages
       uses: actions/cache/save@v5
       with:
         path: ~/.m2/repository
-        key: m2    
+        key: m2-${{ github.run_id }}-${{ github.run_attempt }}   
 
   # Compile the code
   build:
@@ -51,7 +55,7 @@ jobs:
       uses: actions/cache/restore@v5
       with:
         path: ~/.m2/repository
-        key: m2
+        key: m2-${{ github.run_id }}-${{ github.run_attempt }}
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
