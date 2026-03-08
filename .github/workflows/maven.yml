@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        repository: 'goxr3plus/java-stream-player'
+        repository: 'fun-o-form/java-stream-player-minus-jitpack'
 
     - name: Debug
       run: 
