@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fun-o-form</groupId>
     <artifactId>mdp</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>Function Over Form Music Directory Player</name>
     <description>Plays local music files</description>
     <properties>
@@ -96,7 +96,10 @@
 			                    <resource>
 			                        <directory>${basedir}</directory>
 			                        <includes>
+			                            <include>install.sh</include>>
 			                            <include>launch-mdp-java.sh</include>
+			                            <include>mdp.desktop</include>
+			                            <include>mdp.png</include>
 			                        </includes>
 			                    </resource>
 			                </resources>
