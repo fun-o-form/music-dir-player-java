@@ -24,6 +24,12 @@ jobs:
       with:
         repository: 'fun-o-form/java-stream-player-minus-jitpack'
     
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: m2
+		
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -41,6 +47,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: m2	
+	
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
