@@ -51,7 +51,7 @@ jobs:
       uses: actions/cache/restore@v5
       with:
         path: ~/.m2/repository
-        key: -m2
+        key: m2
 
     - name: debug
       run: ls -lah
