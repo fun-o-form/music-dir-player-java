@@ -1,6 +1,5 @@
 package funoform.mdp.gui;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -33,7 +32,7 @@ public class OptionsDialog {
 	private ConfigManager mCm;
 	private IOptionsDoneListener mL;
 
-	private JPanel mPnl = new JPanel();
+	JPanel mPnl = new JPanel(new GridBagLayout());
 
 	public OptionsDialog(ConfigManager cm, IOptionsDoneListener l) {
 		mCm = cm;
@@ -56,20 +55,15 @@ public class OptionsDialog {
 		JSpinner spinBarWidth = new JSpinner(new SpinnerNumberModel(mCm.getScrollBarWidth(), 5, 200, 1));
 		JCheckBox checkAutoStart = new JCheckBox("Automatically start playing music on startup");
 		checkAutoStart.setSelected(mCm.getIsAutoStart());
-		JCheckBox checkShowPrevBtn = new JCheckBox("Show the previous track button. Takes effect on next restart");
+		JCheckBox checkShowPrevBtn = new JCheckBox("Show the previous track button*");
 		checkShowPrevBtn.setSelected(mCm.getIsShowPrevTrackBtn());
 
-		JComboBox<String> comboLookAndFeel = new JComboBox<String>(getAvailableLookAndFeels());
+		JComboBox<String> comboLookAndFeel = new JComboBox<>(getAvailableLookAndFeels());
 		// A crazy user might want to add a L&F to the class path then type in the name
 		// rather then just picking from the list. Let them.
 		comboLookAndFeel.setEditable(true);
-		// TODO: set drop down to the selected laf, allow selecting "default", and
-		// layout options for better portrait now that look and feel right pane is so
-		// large
 
 		JButton btnBack = new JButton("Back");
-
-		JPanel gbPnl = new JPanel(new GridBagLayout());
 
 		int row = 0;
 
@@ -87,46 +81,40 @@ public class OptionsDialog {
 
 		left.gridy = row;
 		right.gridy = row;
-		gbPnl.add(OptionsDialog.textArea(
-				"Font scale. 1.0 is normal. Only applied when running on the Librem 5. Takes effect upon restart."),
-				left);
-		gbPnl.add(spinFontScale, right);
+		mPnl.add(OptionsDialog.textArea("Font scale. 1.0 is normal. Only applied when running on the Librem 5*"), left);
+		mPnl.add(spinFontScale, right);
 
 		row++;
 		left.gridy = row;
 		right.gridy = row;
-		gbPnl.add(OptionsDialog.textArea(
-				"Scroll bar width. 20 is normal. Only applied when running on the Librem 5. Takes effect upon restart."),
+		mPnl.add(OptionsDialog.textArea("Scroll bar width. 20 is normal. Only applied when running on the Librem 5*"),
 				left);
-		gbPnl.add(spinBarWidth, right);
+		mPnl.add(spinBarWidth, right);
 
-		row++;
-		left.gridy = row;
-		right.gridy = row;
-		gbPnl.add(OptionsDialog.textArea("GUI look and feel. Takes effect upon restart."), left);
-		gbPnl.add(comboLookAndFeel, right);
-
-		row++;
 		GridBagConstraints bottom = new GridBagConstraints();
-		bottom.fill = GridBagConstraints.NONE;
+		bottom.fill = GridBagConstraints.BOTH;
 		bottom.weightx = 1.0;
 		bottom.gridx = 0;
 		bottom.gridwidth = 2;
-		bottom.gridy = row;
 		bottom.anchor = GridBagConstraints.LINE_START;
-		gbPnl.add(checkAutoStart, bottom);
 
-		row++;
-		bottom.gridy = row;
-		gbPnl.add(checkShowPrevBtn, bottom);
+		bottom.gridy = ++row;
+		mPnl.add(OptionsDialog.textArea("GUI look and feel*"), bottom);
+		bottom.gridy = ++row;
+		mPnl.add(comboLookAndFeel, bottom);
 
-		row++;
-		bottom.gridy = row;
+		bottom.gridy = ++row;
+		mPnl.add(checkAutoStart, bottom);
+
+		bottom.gridy = ++row;
+		mPnl.add(checkShowPrevBtn, bottom);
+
+		bottom.gridy = ++row;
+		mPnl.add(OptionsDialog.textArea("* Takes effect after next restart."), bottom);
+
+		bottom.gridy = ++row;
 		bottom.anchor = GridBagConstraints.CENTER;
-		gbPnl.add(btnBack, bottom);
-
-		mPnl.setLayout(new BorderLayout());
-		mPnl.add(gbPnl, BorderLayout.NORTH);
+		mPnl.add(btnBack, bottom);
 
 		spinFontScale.addChangeListener(new ChangeListener() {
 			@Override

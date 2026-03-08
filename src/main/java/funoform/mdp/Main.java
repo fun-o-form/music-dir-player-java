@@ -56,7 +56,9 @@ public class Main {
 			}
 
 			Controller ctrl = new Controller(cfg);
-			Cli cli = new Cli(ctrl);
+
+			// Disable the command line interface. Focus on GUI for now.
+			// Cli cli = new Cli(ctrl);
 
 			// The default font size, as utilized by Java at least, is too small on the
 			// librem5. Make it bigger. This must be done before creating any GUI components
