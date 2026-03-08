@@ -23,10 +23,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: 'fun-o-form/java-stream-player-minus-jitpack'
-
-    - name: Debug
-      run: 
-        ls -lah
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -36,10 +32,11 @@ jobs:
         cache: maven
         
     - name: Build with Maven
-      run: mvn install
+      run: mvn -B package
 
   # Compile the code
   build:
+	needs: build-deps
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
