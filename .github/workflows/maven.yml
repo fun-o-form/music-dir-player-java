@@ -16,30 +16,63 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Compile the code
-  build:
+  # Compile deps we would normally download from jitpack.io which is currently offline
+  build-deps:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+      with:
+        repository: 'fun-o-form/java-stream-player-fork'
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-        
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
 
-    - name: Save jars
+    - name: Build with Maven
+      run: mvn install
+      
+    # ~/.m2 contains the built jars for java-stream-player-fork. Make this cache
+    # available to our next job that actually builds mdp. Eliminates need to publish
+    # jars to someplace like maven central. Name the cache after the github run and
+    # attempt so we are sure our cache is only used for this specific workflow execution.
+    - name: Cache Maven packages
+      uses: actions/cache/save@v5
+      with:
+        path: ~/.m2/repository
+        key: m2-${{ github.run_id }}-${{ github.run_attempt }}   
+
+  # Compile the code
+  build:
+    needs: build-deps
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache Maven packages
+      uses: actions/cache/restore@v5
+      with:
+        path: ~/.m2/repository
+        key: m2-${{ github.run_id }}-${{ github.run_attempt }}
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Build with Maven
+      run: mvn install
+
+    - name: Save targets
       uses: actions/upload-artifact@v4.6.2
       with:
-        name: $GITHUB_REPOSITORY-$GITHUB_SHA
+        name: music-dir-player
         path: ./target/*
         if-no-files-found: warn
         retention-days: 0
         compression-level: 0
         overwrite: true
         include-hidden-files: false
-            

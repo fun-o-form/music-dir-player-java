@@ -10,19 +10,11 @@
     <properties>
     </properties>
     
-    <repositories>
-    	<!--jlayer-->
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
-	
 	<dependencies>
 		<!--For playing MP3s-->
 		<dependency>
-		   <groupId>com.github.goxr3plus</groupId>
-		   <artifactId>java-stream-player</artifactId>
+		   <groupId>fun-o-form</groupId>
+		   <artifactId>java-stream-player-fork</artifactId>
 		   <version>10.0.0</version>
 		</dependency>
 		<!--For allowing multimedia control (MPRIS) on Linux-->
