@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Music Dir Player
+Comment=Music Directory Player
+Exec=bash -c "cd ~/.local/share/applications/music-dir-player && ./launch-mdp-java.sh"
+Icon=mdp.png
+Terminal=false
+Categories=Utility;
