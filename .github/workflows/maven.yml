@@ -13,6 +13,7 @@ on:
     branches: [ "*" ]
   pull_request:
     branches: [ "*" ]
+  workflow_dispatch:
 
 jobs:
   # Compile deps we would normally download from jitpack.io which is currently offline
