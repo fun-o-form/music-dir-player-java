@@ -54,7 +54,7 @@ jobs:
         key: m2
 
     - name: debug
-      run: ls -lah
+      run: ls -lah ~/
     - name: debug2
       run: ls -lah ~/.m2/repository
     - name: debug3
