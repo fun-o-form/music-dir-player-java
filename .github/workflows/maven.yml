@@ -18,9 +18,6 @@ jobs:
   # Compile deps we would normally download from jitpack.io which is currently offline
   build-deps:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: java-stream-player
     steps:
     - uses: actions/checkout@v4
       with:
@@ -38,8 +35,8 @@ jobs:
         cache: maven
         
     - name: Build with Maven
-      run: 
-        mvn -B package --file pom.xml
+      run: mvn -B package --file pom.xml
+      working-directory: ./java-stream-player
 
   # Compile the code
   build:
