@@ -1,4 +1,4 @@
-# ![Logo](./mdp.png) Function Over Form (Fun-O-Form) Music Directory Player - Java
+# ![Logo](./mdp.png) Music Directory Player - Java
 
 This application plays local music files. It does not read MP3 tags nor does it create database for searching your collection. Instead it does only one thing, plays all the music files in whatever directory you specify. You may have it play the files in the current directory (not recursive) or include all the music files in any sub-directories (recursive).
 
@@ -23,14 +23,15 @@ This application plays local music files. It does not read MP3 tags nor does it 
 </table>
 
 ## Fun-o-form Approach
+This app is part of the Function Over Form (Fun-O-Form) organization which focuses on:
 * Minimal dependencies
 * Minimal hardware requirements
 * Prioritize functionality over aesthetics
 
 ## Features
 1. A command line user interface
-2. A graphical user interface (eventually)
-3. Control via MPRIS DBus - allows controlling the player through many Linux built-in media controls
+2. A graphical user interface
+3. Control via MPRIS DBus - allows controlling the player through Bluetooth devices many Linux built-in media controls (lock screen, system tray widgets)
 
 ## Target Platform
 This application is written specifically for the **Librem 5** Linux phone running Phosh on PureOS or PostmarketOS. Let's face it, if you have a keyboard+mouse and a big screen, there are numerous other local media players you could use.
