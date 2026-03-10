@@ -1,4 +1,4 @@
-# Function Over Form (Fun-O-Form) Music Directory Player - Java
+# ![Logo](./mdp.png) Function Over Form (Fun-O-Form) Music Directory Player - Java
 
 This application plays local music files. It does not read MP3 tags nor does it create database for searching your collection. Instead it does only one thing, plays all the music files in whatever directory you specify. You may have it play the files in the current directory (not recursive) or include all the music files in any sub-directories (recursive).
 
