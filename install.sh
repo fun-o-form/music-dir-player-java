@@ -16,3 +16,9 @@ cp -r ./* $INSTALL_DIR
 cp ./mdp.png ~/.local/share/icons
 
 echo "All done. It will show up as Music Dir Player in your application list"
+
+if ! command -v java $> /dev/null; then
+	echo "Java was not found. This is required to run the player. Install it as shown below:"
+	echo "   PureOS (Debian-based): sudo apt install openjdk-17-jre"
+    echo "   PostmarketOS (Alpine-based): sudo apk add openjdk25-jre"
+fi

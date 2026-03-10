@@ -324,7 +324,14 @@ public class Gui extends JPanel implements RaiseWindowRequestListener {
 	}
 
 	private void setSongDirBtnText(Path dir, int count) {
-		String dirLabel = dir.getFileName().toString() + " (" + count + ")";
+		String dirName = "";
+		if (null == dir.getParent() && null == dir.getFileName()) {
+			// root dir on linux doesn't have a file name. It returns null.
+			dirName = "/";
+		} else {
+			dirName = dir.getFileName().toString();
+		}
+		String dirLabel = dirName + " (" + count + ")";
 		mBtnDir.setText(dirLabel);
 	}
 

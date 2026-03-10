@@ -34,6 +34,7 @@ public class ConfigManager {
 	private static final String SCROLL_BAR_WIDTH = "scrollBarWidth";
 	private static final String PREV_TRACK_BUTTON = "isShowPrevTrackButton";
 	private static final String LOOK_AND_FEEL = "lookAndFeel";
+	private static final String MAX_LIST_FILES_WAIT_TIME_SEC = "maxListFilesWaitTimeSec";
 
 	public ConfigManager() {
 		// log values at startup
@@ -55,10 +56,10 @@ public class ConfigManager {
 		sLogger.log(Level.FINE, "   " + AUTO_START + "=" + getIsAutoStart());
 		sLogger.log(Level.FINE, "   " + PREV_TRACK_BUTTON + "=" + getIsAutoStart());
 		sLogger.log(Level.FINE, "   " + LOOK_AND_FEEL + "=" + getLookAndFeel());
+		sLogger.log(Level.FINE, "   " + MAX_LIST_FILES_WAIT_TIME_SEC + "=" + getMaxListFilesWaitTimeSec());
 	}
 
 	public String getStartingDir() {
-		// TODO: Remove Music from path
 		Path defaultPath = Path.of(System.getProperty("user.home"), "Music");
 		return mPrefs.get(STARTING_DIR, defaultPath.toString());
 	}
@@ -66,17 +67,19 @@ public class ConfigManager {
 	public boolean getIsAutoStart() {
 		return mPrefs.getBoolean(AUTO_START, true);
 	}
-	
+
 	public void saveAutoStart(boolean autoStart) {
 		mPrefs.putBoolean(AUTO_START, autoStart);
+		persistPrefs();
 	}
-	
+
 	public boolean getIsShowPrevTrackBtn() {
 		return mPrefs.getBoolean(PREV_TRACK_BUTTON, false);
 	}
-	
+
 	public void saveShowPrevTrackBtn(boolean shouldShow) {
 		mPrefs.putBoolean(PREV_TRACK_BUTTON, shouldShow);
+		persistPrefs();
 	}
 
 	public boolean getIsRandom() {
@@ -91,12 +94,18 @@ public class ConfigManager {
 		return mPrefs.getBoolean(RECURSIVE, false);
 	}
 
+	public void saveIsRecursive(boolean recursive) {
+		mPrefs.putBoolean(RECURSIVE, recursive);
+		persistPrefs();
+	}
+
 	public double getFontScale() {
 		return mPrefs.getDouble(FONT_SCALE, 1.5d);
 	}
 
 	public void saveFontScale(double fontScale) {
 		mPrefs.putDouble(FONT_SCALE, fontScale);
+		persistPrefs();
 	}
 
 	public int getScrollBarWidth() {
@@ -105,26 +114,39 @@ public class ConfigManager {
 
 	public void saveScrollBarWidth(int barWidth) {
 		mPrefs.putInt(SCROLL_BAR_WIDTH, barWidth);
+		persistPrefs();
 	}
-	
+
 	public String getLookAndFeel() {
 		return mPrefs.get(LOOK_AND_FEEL, null);
 	}
-	
+
 	public void saveLookAndFeel(String laf) {
 		mPrefs.put(LOOK_AND_FEEL, laf);
+		persistPrefs();
 	}
-	
+
+	public int getMaxListFilesWaitTimeSec() {
+		return mPrefs.getInt(MAX_LIST_FILES_WAIT_TIME_SEC, 10);
+	}
+
+	public void saveMaxListFilesWaitTimeSec(int seconds) {
+		mPrefs.putInt(MAX_LIST_FILES_WAIT_TIME_SEC, seconds);
+		persistPrefs();
+	}
 
 	public void savePreferences(SettingsChanged newSettings) {
 		mPrefs.put(STARTING_DIR, newSettings.playingDir.toString());
 		mPrefs.putBoolean(RANDOM, newSettings.isRandom);
 		mPrefs.putBoolean(REPEAT, newSettings.isRepeat);
+		persistPrefs();
+	}
+
+	private void persistPrefs() {
 		try {
 			mPrefs.flush();
 		} catch (BackingStoreException e) {
 			sLogger.log(Level.WARNING, "Failed to save preferences due to exception = " + e.getMessage());
 		}
-		// TODO: no way to change recursive
 	}
 }

@@ -37,6 +37,19 @@ public class Main {
 			sLogger.log(Level.INFO, "Starting Player");
 
 			ConfigManager cfg = new ConfigManager();
+
+			// Look out for users who are starting up and trying to recursively play "/". It
+			// would take a LONG time for java iterate all the files in root recursively,
+			// especially since we catch permissions exceptions and keep going. We want
+			// users to be able use this app however they want, but I doubt anyone intends
+			// to recursively play root at startup.
+			if (cfg.getIsRecursive() && cfg.getStartingDir().compareTo("/") == 0) {
+				// just make root play non-recursively. That will speed things up dramatically.
+				cfg.saveIsRecursive(false);
+				sLogger.log(Level.WARNING,
+						"Config specified that '/' should be played recursively at startup. That is crazy. Playing it non-recurisively instead");
+			}
+
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
 			// Set the Swing look and feel. This only impacts the Gui, but must be done
