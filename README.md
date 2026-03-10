@@ -3,12 +3,24 @@
 This application plays local music files. It does not read MP3 tags nor does it create database for searching your collection. Instead it does only one thing, plays all the music files in whatever directory you specify. You may have it play the files in the current directory (not recursive) or include all the music files in any sub-directories (recursive).
 
 ## Screenshots
-
-Metal Look and Feel (default)
-<img src="./doc/metal.png" alt="Metal L&F" height="300">
-
-GTK Look and Feel
-<img src="./doc/gtk.png" alt="GTK L&F" height="300">
+<table>
+	<tr align="center">
+		<td>Metal Look and Feel<br />The default</td>
+		<td>GTK Look and Feel</td>
+		<td>Nimbus Look and Feel</td>
+		<td>Directory Picker</td>
+		<td>Options</td>
+		<td>Landscape</td>
+	</tr>
+	<tr align="center">
+		<td><img src="./doc/metal.png" height="300"></td>
+		<td><img src="./doc/gtk.png" height="300"></td>
+		<td><img src="./doc/nimbus.png" height="300"></td>
+		<td><img src="./doc/dir-picker.png" height="300"></td>
+		<td><img src="./doc/options.png" height="300"></td>
+		<td><img src="./doc/landscape.png" height="300"></td>
+	</tr>
+</table>
 
 ## Fun-o-form Approach
 * Minimal dependencies
