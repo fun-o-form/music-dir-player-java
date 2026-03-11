@@ -71,9 +71,9 @@ jobs:
       with:
         name: music-dir-player
         path: |
-		  ./target/*
-		  !./target/classes/
-		  !./target/maven-*/
+          ./target/*
+          !./target/classes/
+          !./target/maven-*/
         if-no-files-found: warn
         retention-days: 0
         compression-level: 0
