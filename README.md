@@ -10,7 +10,6 @@ This application plays local music files. It does not read MP3 tags nor does it 
 		<td>Nimbus Look and Feel</td>
 		<td>Directory Picker</td>
 		<td>Options</td>
-		<td>Landscape</td>
 	</tr>
 	<tr align="center">
 		<td><img src="./doc/metal.png" height="300"></td>
@@ -18,7 +17,14 @@ This application plays local music files. It does not read MP3 tags nor does it 
 		<td><img src="./doc/nimbus.png" height="300"></td>
 		<td><img src="./doc/dir-picker.png" height="300"></td>
 		<td><img src="./doc/options.png" height="300"></td>
-		<td><img src="./doc/landscape.png" height="300"></td>
+	</tr>
+	<tr align="center">
+		<td colspan=3">Landscape</td>
+		<td>Command Line Interface</td>
+	</tr>
+	<tr align="center">
+		<td colspan=3"><img src="./doc/landscape.png" height="300"></td>
+		<td><img src="./doc/cli.png" height="300"></td>
 	</tr>
 </table>
 
