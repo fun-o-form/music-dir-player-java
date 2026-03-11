@@ -91,7 +91,7 @@ public class FileUtils {
 		}
 	}
 
-	static List<Path> listMusicFiles(File dir, int depthRemaining, long quitAtMs) throws IOException {
+	private static List<Path> listMusicFiles(File dir, int depthRemaining, long quitAtMs) throws IOException {
 		if (0 == depthRemaining) {
 			// break out of our recursive loop once we have exhausted our full allowable
 			// search depth

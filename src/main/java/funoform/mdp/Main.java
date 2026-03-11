@@ -70,15 +70,38 @@ public class Main {
 
 			Controller ctrl = new Controller(cfg);
 
-			// Disable the command line interface. Focus on GUI for now.
-			// Cli cli = new Cli(ctrl);
-
-			// The default font size, as utilized by Java at least, is too small on the
-			// librem5. Make it bigger. This must be done before creating any GUI components
-			if (GuiUtils.isLibrem()) {
-				GuiUtils.scaleAllFontSize(cfg.getFontScale());
+			for (String arg : args) {
+				sLogger.log(Level.SEVERE, "arg = " + arg);
 			}
-			Gui gui = new Gui(ctrl, cfg);
+
+			// Cmd line args determine if we run the CLI, GUI, or both
+			// no args, run cli
+			// --gui, run just gui
+			// --both, run both gui and cui
+			boolean runCli = true;
+			boolean runGui = false;
+			if (args.length > 0 && args[0].compareTo("--gui") == 0) {
+				runGui = true;
+				runCli = false;
+			} else if (args.length > 0 && args[0].compareTo("--both") == 0) {
+				runGui = true;
+				runCli = true;
+			}
+
+			Cli cli = null;
+			if (runCli) {
+				cli = new Cli(ctrl);
+			}
+
+			Gui gui = null;
+			if (runGui) {
+				// The default font size, as utilized by Java at least, is too small on the
+				// librem5. Make it bigger. This must be done before creating any GUI components
+				if (GuiUtils.isLibrem()) {
+					GuiUtils.scaleAllFontSize(cfg.getFontScale());
+				}
+				gui = new Gui(ctrl, cfg);
+			}
 
 			DBusInterface dbi = new DBusInterface(ctrl, gui);
 		} catch (Exception e) {

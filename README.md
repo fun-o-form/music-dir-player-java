@@ -44,7 +44,9 @@ As a Java application this will run on a variety of platforms not just the Libre
 ## Related Projects
 1. Music Dir Player (Rust) - This Java application was also written as a RUST application. The expectation is the Rust application will provide the same capability while consuming fewer system resources. However I am learning Rust as I go and progress has been slow. I developed this Java application to utilize while I keep developing the Rust version. As a benefit, this allows conducting an apples-to-apples comparison of the two apps' overall performance.
 
-## Installation
+## Usage
+
+### Installation
 1. Ensure you have a Java JRE installed. It cannot be a *headless* version.
    * PureOS (Debian-based): `sudo apt install openjdk-17-jre`
    * PostmarketOS (Alpine-based): `sudo apk add openjdk25-jre`
@@ -59,6 +61,19 @@ As a Java application this will run on a variety of platforms not just the Libre
   ./install.sh
   ```
 4. Launch the application using your graphical application list. It shows up as **Music Dir Player**
+
+### Choosing the GUI or CLI
+This app provides both graphical and command line interfaces. You can run either, or both, by specifying a command line argument.
+| Example | Outcome |
+| -- | -- |
+| ./launch-mdp-java.sh | Runs the CLI. |
+| ./launch-mdp-java.sh --gui | Runs the GUI. This is how the installed desktop entry launches this app. |
+| ./launch-mdp-java.sh --both | Runs the CLI and GUI. |
+
+### Logs
+This app includes a default logging configuration file that writes logs to ./music-dir-player-java.log. This file is truncated every time the app is launched so no log file maintenance is required.
+
+You may override the the build in logging configuration file by specifying your log config file as a command line argument: `-Djava.util.logging.config.file=your-log.properties`. Note however that writing logs to the console renders the CLI unusable.
 
 ## Contributing
 
