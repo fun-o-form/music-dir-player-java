@@ -37,6 +37,19 @@ public class Main {
 			sLogger.log(Level.INFO, "Starting Player");
 
 			ConfigManager cfg = new ConfigManager();
+
+			// Look out for users who are starting up and trying to recursively play "/". It
+			// would take a LONG time for java iterate all the files in root recursively,
+			// especially since we catch permissions exceptions and keep going. We want
+			// users to be able use this app however they want, but I doubt anyone intends
+			// to recursively play root at startup.
+			if (cfg.getIsRecursive() && cfg.getStartingDir().compareTo("/") == 0) {
+				// just make root play non-recursively. That will speed things up dramatically.
+				cfg.saveIsRecursive(false);
+				sLogger.log(Level.WARNING,
+						"Config specified that '/' should be played recursively at startup. That is crazy. Playing it non-recurisively instead");
+			}
+
 			Path startingDir = Paths.get(cfg.getStartingDir());
 
 			// Set the Swing look and feel. This only impacts the Gui, but must be done
@@ -57,15 +70,38 @@ public class Main {
 
 			Controller ctrl = new Controller(cfg);
 
-			// Disable the command line interface. Focus on GUI for now.
-			// Cli cli = new Cli(ctrl);
-
-			// The default font size, as utilized by Java at least, is too small on the
-			// librem5. Make it bigger. This must be done before creating any GUI components
-			if (GuiUtils.isLibrem()) {
-				GuiUtils.scaleAllFontSize(cfg.getFontScale());
+			for (String arg : args) {
+				sLogger.log(Level.SEVERE, "arg = " + arg);
 			}
-			Gui gui = new Gui(ctrl, cfg);
+
+			// Cmd line args determine if we run the CLI, GUI, or both
+			// no args, run cli
+			// --gui, run just gui
+			// --both, run both gui and cui
+			boolean runCli = true;
+			boolean runGui = false;
+			if (args.length > 0 && args[0].compareTo("--gui") == 0) {
+				runGui = true;
+				runCli = false;
+			} else if (args.length > 0 && args[0].compareTo("--both") == 0) {
+				runGui = true;
+				runCli = true;
+			}
+
+			Cli cli = null;
+			if (runCli) {
+				cli = new Cli(ctrl);
+			}
+
+			Gui gui = null;
+			if (runGui) {
+				// The default font size, as utilized by Java at least, is too small on the
+				// librem5. Make it bigger. This must be done before creating any GUI components
+				if (GuiUtils.isLibrem()) {
+					GuiUtils.scaleAllFontSize(cfg.getFontScale());
+				}
+				gui = new Gui(ctrl, cfg);
+			}
 
 			DBusInterface dbi = new DBusInterface(ctrl, gui);
 		} catch (Exception e) {

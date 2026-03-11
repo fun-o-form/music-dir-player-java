@@ -53,7 +53,9 @@ public class OptionsDialog {
 	private void init() {
 		JSpinner spinFontScale = new JSpinner(new SpinnerNumberModel(mCm.getFontScale(), 0.1, 3.0, 0.1));
 		JSpinner spinBarWidth = new JSpinner(new SpinnerNumberModel(mCm.getScrollBarWidth(), 5, 200, 1));
+		JSpinner spinBarMaxListFilesTime = new JSpinner(new SpinnerNumberModel(mCm.getMaxListFilesWaitTimeSec(), 1, 600, 1));
 		JCheckBox checkAutoStart = new JCheckBox("Automatically start playing music on startup");
+		JCheckBox checkRecursive = new JCheckBox("Startup directory played recursively");
 		checkAutoStart.setSelected(mCm.getIsAutoStart());
 		JCheckBox checkShowPrevBtn = new JCheckBox("Show the previous track button*");
 		checkShowPrevBtn.setSelected(mCm.getIsShowPrevTrackBtn());
@@ -90,6 +92,13 @@ public class OptionsDialog {
 		mPnl.add(OptionsDialog.textArea("Scroll bar width. 20 is normal. Only applied when running on the Librem 5*"),
 				left);
 		mPnl.add(spinBarWidth, right);
+		
+		row++;
+		left.gridy = row;
+		right.gridy = row;
+		mPnl.add(OptionsDialog.textArea("Maximum seconds allowed to find music files in directories, even recursively."),
+				left);
+		mPnl.add(spinBarMaxListFilesTime, right);
 
 		GridBagConstraints bottom = new GridBagConstraints();
 		bottom.fill = GridBagConstraints.BOTH;
@@ -105,6 +114,9 @@ public class OptionsDialog {
 
 		bottom.gridy = ++row;
 		mPnl.add(checkAutoStart, bottom);
+		
+		bottom.gridy = ++row;
+		mPnl.add(checkRecursive, bottom);
 
 		bottom.gridy = ++row;
 		mPnl.add(checkShowPrevBtn, bottom);
@@ -129,14 +141,28 @@ public class OptionsDialog {
 				mCm.saveScrollBarWidth((int) spinBarWidth.getModel().getValue());
 			}
 		});
-
+		
+		spinBarMaxListFilesTime.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				mCm.saveMaxListFilesWaitTimeSec((int) spinBarMaxListFilesTime.getModel().getValue());
+			}
+		});
+		
 		checkAutoStart.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				mCm.saveAutoStart(checkAutoStart.isSelected());
 			}
 		});
-
+		
+		checkRecursive.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				mCm.saveIsRecursive(checkRecursive.isSelected());
+			}
+		});
+		
 		checkShowPrevBtn.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {

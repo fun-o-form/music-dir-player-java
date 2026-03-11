@@ -1,5 +1,6 @@
 package funoform.mdp;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
@@ -11,8 +12,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FileUtils {
 
@@ -44,27 +43,96 @@ public class FileUtils {
 		return dirs;
 	}
 
-	public static List<Path> listMusicFiles(Path dir, boolean recursive) throws IOException {
+	/**
+	 * Gets a list of all the playable music files in the specified directory.
+	 * 
+	 * @param dir                 The directory to search.
+	 * @param recursive           If false, we only search the specified directory.
+	 *                            If true, we keep searching sub-directories as we
+	 *                            find them.
+	 * @param maxListFilesTimeSec A time limit for how long this method is allowed
+	 *                            to run before returning. For example, suppose you
+	 *                            are searching "/" recursively with a
+	 *                            maxListFilesTimesSec set to 10 seconds. Then after
+	 *                            10 seconds we will return whatever we have found
+	 *                            so far even though we didn't finish searching
+	 *                            every sub-directory.
+	 * @return The list of playable music files.
+	 * @throws IOException
+	 */
+	public static List<Path> listMusicFiles(Path dir, boolean recursive, int maxListFilesTimeSec) throws IOException {
 		int depth = 1;
 		if (recursive) {
 			// set a limit on how deep we will search, just in case we have a bug in our
 			// search or the user did something dumb like have a folder contain a sym link
 			// to itself. We don't want to turn off following sym links for music
 			// collections entirely because I could see users using them.
-			depth = 100;
-		}
-		List<Path> ret = new ArrayList<>();
-		try (Stream<Path> s = Files.walk(dir, depth)) {
-			ret = s.filter(Files::isRegularFile).filter(p -> isSupportedAudioFile(p)).collect(Collectors.toList());
+			depth = 20;
 		}
 
-		// sort file names alphabetically ignoring case
-		Collections.sort(ret, new Comparator<Path>() {
-			@Override
-			public int compare(Path o1, Path o2) {
-				return o1.getFileName().toString().toLowerCase().compareTo(o2.getFileName().toString().toLowerCase());
+		// Some number of seconds in the future we will stop searching and just return
+		// what we got so far
+		long quitAtMs = System.currentTimeMillis() + maxListFilesTimeSec * 1000;
+
+		List<Path> ret = listMusicFiles(dir.toFile(), depth, quitAtMs);
+
+		if (null != ret) {
+			// sort file names alphabetically ignoring case
+			Collections.sort(ret, new Comparator<Path>() {
+				@Override
+				public int compare(Path o1, Path o2) {
+					return o1.getFileName().toString().toLowerCase()
+							.compareTo(o2.getFileName().toString().toLowerCase());
+				}
+			});
+			return ret;
+		} else {
+			return new ArrayList<Path>();
+		}
+	}
+
+	private static List<Path> listMusicFiles(File dir, int depthRemaining, long quitAtMs) throws IOException {
+		if (0 == depthRemaining) {
+			// break out of our recursive loop once we have exhausted our full allowable
+			// search depth
+			return null;
+		}
+
+		List<Path> ret = new ArrayList<>();
+
+		File[] filesInDir = dir.listFiles();
+
+		if (filesInDir != null) {
+			for (File fileInDir : filesInDir) {
+
+				// Check to see if we have taken too long. If so, break out now to stop
+				// searching and return what we got so far
+				if (quitAtMs <= System.currentTimeMillis()) {
+					return ret;
+				}
+
+				try {
+					// If this is a sub-directory, follow it down recursively
+					if (fileInDir.isDirectory()) {
+						List<Path> subFiles = listMusicFiles(fileInDir, depthRemaining - 1, quitAtMs);
+						if (null != subFiles) {
+							ret.addAll(subFiles);
+						}
+					}
+					// if its just a file, not a directory, add the file directly if it is a music
+					// file
+					else if (fileInDir.isFile()) {
+						Path p = fileInDir.toPath();
+						if (isSupportedAudioFile(p)) {
+							ret.add(p);
+						}
+					}
+				} catch (Exception e) {
+					// Probably a permissions denied exception. Just ignore this directory and move
+					// on to the next one.
+				}
 			}
-		});
+		}
 
 		return ret;
 	}

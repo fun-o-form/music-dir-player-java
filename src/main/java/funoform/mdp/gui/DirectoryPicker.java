@@ -132,17 +132,29 @@ public class DirectoryPicker {
 		if (MAX_PARENTS <= depth) {
 			return depth;
 		}
-		// If there is no filename then this path isn't valid
-		if (null == p.getFileName()) {
-			return depth;
+		
+		int oldestParentDepth = -1;
+		// If I have no parents (e.g. "/") then I must be the oldest
+		if (null == p.getParent()) {
+			oldestParentDepth = depth;
+		}
+		else {
+			// I have at least one parent, check to see if they should be included
+			oldestParentDepth = processParents(p.getParent(), depth + 1);
 		}
 
-		int oldestParentDepth = processParents(p.getParent(), depth + 1);
-
+		String dirName = "";
+		if(null!=p.getFileName()) {
+			dirName = p.getFileName().toString();
+		}
+		else {
+			// the root directory has no file name, just assign it "" which has / appended later
+		}
+		
 		if (oldestParentDepth == depth) {
 			// There is no one older than me. Start creating the menu items with me as the
 			// oldest
-			String label = firstNChars(p.getFileName().toString() + "/", MAX_DIR_CHARS);
+			String label = firstNChars(dirName + "/", MAX_DIR_CHARS);
 			PathMenuItem pmi = new PathMenuItem(p, label, true);
 			mPanel.add(pmi);
 		} else {
@@ -152,7 +164,7 @@ public class DirectoryPicker {
 			for (int i = depth; i < oldestParentDepth - 1; i++) {
 				sb.append("   ");
 			}
-			sb.append(firstNChars(p.getFileName().toString(), MAX_DIR_CHARS));
+			sb.append(firstNChars(dirName, MAX_DIR_CHARS));
 			sb.append("/");
 
 			PathMenuItem pmi = new PathMenuItem(p, sb.toString(), true);

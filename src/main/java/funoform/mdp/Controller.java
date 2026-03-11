@@ -116,7 +116,7 @@ public class Controller {
 		mSettings.playingDir = dir;
 		// get a list of music files in the directory
 		try {
-			mQueuedMusicFiles = FileUtils.listMusicFiles(dir, recursive);
+			mQueuedMusicFiles = FileUtils.listMusicFiles(dir, recursive, mCfg.getMaxListFilesWaitTimeSec());
 			mSettings.queuedSongs = mQueuedMusicFiles.size();
 			saveSettings();
 		} catch (IOException e) {
