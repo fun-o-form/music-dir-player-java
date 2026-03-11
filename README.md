@@ -41,7 +41,10 @@ This app is part of the Function Over Form (Fun-O-Form) organization which focus
 ## Features
 1. A command line user interface
 2. A graphical user interface
-3. Control via MPRIS DBus - allows controlling the player through Bluetooth devices many Linux built-in media controls (lock screen, system tray widgets)
+3. Control via MPRIS DBus - allows controlling the player through Bluetooth devices and many Linux built-in media controls (lock screen, system tray widgets)
+4. No MP3 tag reading, no Internet requirement, no databases
+5. Browse your music as directories on disk and play a directory or recursively play it and all sub-directories
+6. Automatically resume last played directory on startup
 
 ## Target Platform
 This application is written specifically for the **Librem 5** Linux phone running Phosh on PureOS or PostmarketOS. Let's face it, if you have a keyboard+mouse and a big screen, there are numerous other local media players you could use.
