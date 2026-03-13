@@ -70,10 +70,6 @@ public class Main {
 
 			Controller ctrl = new Controller(cfg);
 
-			for (String arg : args) {
-				sLogger.log(Level.SEVERE, "arg = " + arg);
-			}
-
 			// Cmd line args determine if we run the CLI, GUI, or both
 			// no args, run cli
 			// --gui, run just gui
@@ -83,9 +79,14 @@ public class Main {
 			if (args.length > 0 && args[0].compareTo("--gui") == 0) {
 				runGui = true;
 				runCli = false;
+				sLogger.log(Level.INFO, "Running GUI only");
 			} else if (args.length > 0 && args[0].compareTo("--both") == 0) {
 				runGui = true;
 				runCli = true;
+				sLogger.log(Level.INFO, "Running both GUI and CLI");
+			}
+			else {
+				sLogger.log(Level.INFO, "Running CLI only");
 			}
 
 			Cli cli = null;

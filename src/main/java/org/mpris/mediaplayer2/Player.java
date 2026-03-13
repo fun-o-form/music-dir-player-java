@@ -73,10 +73,6 @@ public interface Player extends DBusInterface {
 
 	void SetPosition(DBusPath _arg0, long _arg1);
 
-//	interface PropertyMetadataType extends TypeRef<Map<String, Variant<?>>> {
-//		Map<String, Variant<?>> props = new HashMap<>();
-//	}
-
 	class Seeked extends DBusSignal {
 		private final long timeInUs;
 
