@@ -42,6 +42,10 @@ public class DBusInterface implements MediaPlayer2, Player {
 	private RaiseWindowRequestListener mRaiseListener;
 	private SettingsChanged mLastSettings = null;
 	private Object mLastSettingsLock = new Object();
+	private String mLastPlaybackStatus = "";
+	private String mLastSongPlaying = "";
+	private String mAppIcon = "file://" + System.getProperty("user.home") + "/.local/share/icons/mdp.png";
+	private String mDesktopFile = System.getProperty("user.home") + "/.local/share/applications/mdp.desktop";
 
 	public DBusInterface(Controller ctrl, RaiseWindowRequestListener l) throws DBusException {
 
@@ -57,48 +61,59 @@ public class DBusInterface implements MediaPlayer2, Player {
 		// Export this object onto the bus using the path '/'
 		mDbusConn.exportObject(getObjectPath(), this);
 
-//		mDbusConn.addSigHandler(PropertiesChanged.class, new AbstractPropertiesChangedHandler() {
-//			@Override
-//			public void handle(PropertiesChanged _signal) {
-//				System.out.println("DBus: Properties changed");
-//			}
-//		});
-
 		mCtrl.registerSettingsListener(new SettingsListener() {
 			@Override
 			public void settingsChanged(SettingsChanged newSettings) {
 				synchronized (mLastSettingsLock) {
-					if (null == mLastSettings) {
-						mLastSettings = newSettings;
-					} else if (mLastSettings.songPlaying.toString()
-							.compareTo(newSettings.songPlaying.toString()) != 0) {
-						mLastSettings = newSettings;
-					} else {
-						return;
+					mLastSettings = newSettings;
+
+					// if we change state between playing, paused, and stopped, notify DBUS
+					String curPlaybackStatus = getPlaybackStatus();
+					if (curPlaybackStatus.compareToIgnoreCase(mLastPlaybackStatus) != 0) {
+						mLastPlaybackStatus = curPlaybackStatus;
+						Map<String, Variant<?>> prop = new HashMap<>();
+						prop.put("PlaybackStatus", new Variant<String>(mLastPlaybackStatus));
+						sendDbusPropeties(prop);
 					}
-				}
-				try {
-					List<String> invalidatedProperties = new ArrayList<>();
 
-					// TODO: set icon to MDP desktop icon
-
-					Map<String, Variant<?>> md = getMetadata();
-
-					// https://github.com/hypfvieh/dbus-java/issues/74
-					Variant<?> metaDataVariant = new Variant<>(md, "a{sv}");
-					Map<String, Variant<?>> changedProperties = new HashMap<>();
-					changedProperties.put("Metadata", metaDataVariant);
-
-					mDbusConn.sendMessage(
-							new org.freedesktop.dbus.interfaces.Properties.PropertiesChanged(getObjectPath(),
-									"org.mpris.MediaPlayer2.Player", changedProperties, invalidatedProperties));
-				} catch (DBusException e) {
-					sLogger.log(Level.WARNING,
-							"Failed to publish dbus settings change. The song info displayed through dbus will be incorrect. Exception = "
-									+ e.getMessage());
+					// If we started playing a new song, send updated metadata. We must manually
+					//
+					// create our own propertiesChanged dbus messages. The dbus-java library we are
+					// using doesn't do it for us.
+					// When our app starts up, someone on dbus issues a get request for our
+					// properties. The dbus-java library returns the results of calling
+					// getMetaData(). This sets our initial properties on the media control widget
+					// for example. But after that first call, it is up to us to publish our new
+					// properties whenever they change. That is what the code below does. If we
+					// commented out the code below, our meta data would never update on the media
+					// control widget from what our app returned during the first get properties
+					// call.
+					if (mLastSongPlaying.compareTo(newSettings.songPlaying.toString()) != 0) {
+						mLastSongPlaying = newSettings.songPlaying.toString();
+						// Send the metadata map, but within a map, which dbus-java doesn't natively
+						// support. See https://github.com/hypfvieh/dbus-java/issues/74
+						Map<String, Variant<?>> md = getMetadata();
+						Variant<?> metaDataVariant = new Variant<>(md, "a{sv}");
+						Map<String, Variant<?>> changedProperties = new HashMap<>();
+						changedProperties.put("Metadata", metaDataVariant);
+						sendDbusPropeties(changedProperties);
+					}
 				}
 			}
 		});
+
+	}
+
+	private void sendDbusPropeties(Map<String, Variant<?>> propsToSend) {
+		List<String> invalidatedProperties = new ArrayList<>();
+		try {
+			mDbusConn.sendMessage(new org.freedesktop.dbus.interfaces.Properties.PropertiesChanged(getObjectPath(),
+					"org.mpris.MediaPlayer2.Player", propsToSend, invalidatedProperties));
+		} catch (DBusException e) {
+			sLogger.log(Level.WARNING,
+					"Failed to publish dbus settings change. The song info displayed through dbus will be incorrect. Exception = "
+							+ e.getMessage());
+		}
 	}
 
 	@Override
@@ -180,7 +195,7 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 	@Override
 	public String getIdentity() {
-		return "funoformmusicdirplayer";
+		return "Music Dir Player";
 	}
 
 	@Override
@@ -200,7 +215,7 @@ public class DBusInterface implements MediaPlayer2, Player {
 
 	@Override
 	public String getDesktopEntry() {
-		return "firefox";
+		return mDesktopFile;
 	}
 
 	@Override
@@ -293,27 +308,27 @@ public class DBusInterface implements MediaPlayer2, Player {
 		// https://www.freedesktop.org/wiki/Specifications/mpris-spec/metadata/
 		Map<String, Variant<?>> md = new HashMap<>();
 
-		md.put("mpris:trackid", new Variant<String>("KNEZ-trackId"));
-		md.put("xesam:title", new Variant<String>("KNEZ-title"));
-		md.put("xesam:album", new Variant<String>("KNEZ-album"));
-		String[] tempArtist = { "KNEZ-artist" };
+		md.put("mpris:trackid", new Variant<String>("Unknown trackId"));
+		md.put("xesam:title", new Variant<String>("Unknown title"));
+		md.put("xesam:album", new Variant<String>("Unknown album"));
+		String[] tempArtist = { "Unknown artist" };
 		md.put("xesam:artist", new Variant<String[]>(tempArtist));
-		md.put("mpris:length", new Variant<Integer>(30000));
 
-		if (null != mLastSettings) {
-			int trackLenInMicroSecs = (int) (mLastSettings.pbPercentage.getMaxTimeSecs() * 10000);
-			String filePlaying = mLastSettings.songPlaying.getFileName().toString();
-			String dirPlaying = mLastSettings.playingDir.getFileName().toString();
+		synchronized (mLastSettingsLock) {
+			if (null != mLastSettings) {
+				int trackLenInMicroSecs = (int) (mLastSettings.pbPercentage.getMaxTimeSecs() * 10000);
+				// mpris:trackid is the only required field. The rest are optional
+				md.put("mpris:trackid", new Variant<String>(mLastSettings.songPlaying.toAbsolutePath().toString()));
+				md.put("mpris:artUrl", new Variant<String>(mAppIcon)); // DISPLAYED
 
-			md.put("mpris:trackid", new Variant<String>(filePlaying));
-			md.put("mpris:artUrl",
-					new Variant<String>("https://upload.wikimedia.org/wikipedia/en/d/db/Clippy-letter.PNG")); // DISPLAYED
+				md.put("mpris:length", new Variant<Integer>(trackLenInMicroSecs));
+				md.put("xesam:title", new Variant<String>(mLastSettings.songPlaying.getFileName().toString())); // DISPLAYED
 
-			md.put("mpris:length", new Variant<Integer>(trackLenInMicroSecs));
-			md.put("xesam:title", new Variant<String>(filePlaying)); // DISPLAYED
-			md.put("xesam:album", new Variant<String>(dirPlaying)); // DISPLAYED
-			String[] artist = { dirPlaying };
-			md.put("xesam:artist", new Variant<String[]>(artist)); // DISPLAYED
+				String dirPlaying = mLastSettings.playingDir.getFileName().toString();
+				md.put("xesam:album", new Variant<String>(dirPlaying)); // DISPLAYED
+				String[] artist = { dirPlaying };
+				md.put("xesam:artist", new Variant<String[]>(artist)); // DISPLAYED
+			}
 		}
 
 		return md;
